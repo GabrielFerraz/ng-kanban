@@ -1,22 +1,26 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
 import { TaskOption } from '../../../models/modal.model';
 import { SubTask } from '../../../models/subTask.model';
-import { Task } from '../../../models/task.model';
+import { TASK_TYPE_COLORS, Task } from '../../../models/task.model';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-view-task-modal',
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, MatMenuModule, FormsModule],
+  imports: [NgFor, NgClass, NgIf, NgStyle, DatePipe, MatMenuModule, FormsModule],
   templateUrl: './view-task-modal.component.html',
   styleUrl: './view-task-modal.component.scss',
 })
 export class ViewTaskModalComponent implements OnInit {
   activeStatus!: Column;
+
+  get typeColor(): string {
+    return TASK_TYPE_COLORS[this.data.task.type] ?? '#828fa3';
+  }
 
   constructor(
     private dialogRef: MatDialogRef<ViewTaskModalComponent>,
@@ -31,7 +35,7 @@ export class ViewTaskModalComponent implements OnInit {
           ({
             ...column,
             tasks: column.tasks.filter(
-              (task) => task.title === this.data.task.title,
+              (task) => task.id === this.data.task.id,
             ),
           }) as Column,
       )

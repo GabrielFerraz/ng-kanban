@@ -1,6 +1,9 @@
-<div
-  class="board-container board mt-24 h-screen overflow-auto whitespace-nowrap bg-grey-light px-1.6 py-2.4 dark:bg-grey-vdark sm:mt-32 sm:px-2.4 lg:mt-36"
->
+<div class="mt-24 bg-grey-light dark:bg-grey-vdark sm:mt-32 lg:mt-36">
+  <div class="flex gap-2.4 border-b border-lines-light bg-white px-1.6 dark:border-lines-dark dark:bg-grey-dark sm:px-2.4">
+    <button type="button" (click)="selectTab('board')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab === 'board', 'border-transparent text-grey-medium hover:text-purple': activeTab !== 'board' }">Board</button>
+    <button type="button" (click)="selectTab('gantt')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab === 'gantt', 'border-transparent text-grey-medium hover:text-purple': activeTab !== 'gantt' }">Gantt</button>
+  </div>
+  <div *ngIf="activeTab === 'board'" class="board-container board h-screen overflow-auto whitespace-nowrap px-1.6 py-2.4 sm:px-2.4">
   <ng-container *ngIf="activeBoard?.columns?.length; else emptyProjectBoard">
     <div class="inline-block" cdkDropListGroup>
       <div
@@ -69,6 +72,8 @@
       </div>
     </div>
   </ng-container>
+  </div>
+  <app-gantt-chart *ngIf="activeTab === 'gantt'" [tasks]="boardTasks" [darkMode]="darkMode" class="block h-[calc(100vh-13rem)] sm:h-[calc(100vh-15rem)] lg:h-[calc(100vh-16rem)]"></app-gantt-chart>
 </div>
 
 <ng-template #emptyProjectBoard>

@@ -10,8 +10,10 @@ import {
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
-import { Task } from '../../../models/task.model';
+import { TASK_TYPES, Task, TaskType } from '../../../models/task.model';
 import { SubTask } from '../../../models/subTask.model';
+import { addDays, toIsoDate } from '../../../utils/date.util';
+import { dateRangeValidator } from './date-range.validator';
 
 @Component({
   selector: 'app-task-modal',
@@ -25,6 +27,7 @@ export class TaskModalComponent implements OnInit {
 
   form!: FormGroup;
   opened = false;
+  taskTypes = TASK_TYPES;
 
   constructor(
     private fb: FormBuilder,
@@ -48,6 +51,17 @@ export class TaskModalComponent implements OnInit {
         validators: [Validators.required],
       }),
       description: this.fb.control(this.data.task?.description || ''),
+      type: this.fb.control(this.data.task?.type || TaskType.Feature, {
+        validators: [Validators.required],
+      }),
+      startDate: this.fb.control(
+        this.data.task?.startDate || toIsoDate(new Date()),
+        { validators: [Validators.required] },
+      ),
+      endDate: this.fb.control(
+        this.data.task?.endDate || toIsoDate(addDays(new Date(), 2)),
+        { validators: [Validators.required] },
+      ),
       status: this.fb.control(
         this.data.task?.status || this.data.columns[0].name,
         {
@@ -65,6 +79,9 @@ export class TaskModalComponent implements OnInit {
         }),
       ]),
     });
+
+    this.form.addValidators(dateRangeValidator('startDate', 'endDate'));
+    this.form.updateValueAndValidity();
 
     if (this.data.task?.subtasks.length > 0) {
       this.subTaskArray.clear();
@@ -104,16 +121,16 @@ export class TaskModalComponent implements OnInit {
     const editMode = this.data.editMode;
 
     if (editMode) {
-      const updatedBoard: Task = {
+      const updatedTask: Task = {
         ...this.data.task,
         ...this.form.value,
       };
 
-      this.dialogRef.close({ ...updatedBoard });
+      this.dialogRef.close({ ...updatedTask });
     }
 
     if (!editMode) {
-      this.dialogRef.close({ ...this.form.value });
+      this.dialogRef.close({ id: '', ...this.form.value });
     }
   }
 }

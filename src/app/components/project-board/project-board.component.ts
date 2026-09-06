@@ -1,5 +1,6 @@
 import { NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { TaskCardComponent } from './task-card/task-card.component';
 import {
   DragDropModule,
@@ -13,6 +14,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ViewTaskModalComponent } from '../modals/view-task-modal/view-task-modal.component';
 import { TaskOption } from '../../models/modal.model';
 
+export type BoardTab = 'board' | 'gantt';
+
 @Component({
   selector: 'app-project-board',
   standalone: true,
@@ -24,12 +27,15 @@ import { TaskOption } from '../../models/modal.model';
     TaskCardComponent,
     DragDropModule,
     ViewTaskModalComponent,
+    GanttChartComponent,
   ],
   templateUrl: './project-board.component.html',
   styleUrl: './project-board.component.scss',
 })
-export class ProjectBoardComponent {
+export class ProjectBoardComponent implements OnChanges {
   colors = ['#49C4E5', '#8471F2', '#67E2AE'];
+  activeTab: BoardTab = 'board';
+  boardTasks: Task[] = [];
 
   @Input() activeBoard!: Board | null;
   @Input() darkMode = false;
@@ -40,6 +46,14 @@ export class ProjectBoardComponent {
   @Output() taskDeleteModal = new EventEmitter<Task>();
 
   constructor(private dialog: MatDialog) {}
+
+  ngOnChanges(): void {
+    this.boardTasks = (this.activeBoard?.columns ?? []).flatMap((column) => column.tasks ?? []);
+  }
+
+  selectTab(tab: BoardTab): void {
+    this.activeTab = tab;
+  }
 
   drop(event: CdkDragDrop<Task[]>) {
     if (this.activeBoard) {

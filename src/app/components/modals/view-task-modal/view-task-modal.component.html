@@ -39,6 +39,14 @@
       </div>
     </mat-menu>
   </div>
+  <div class="flex flex-wrap gap-1.6 text-sm font-bold leading-sm">
+    <span class="text-grey-medium">{{ data.task.id }}</span>
+    <span class="rounded-full px-1.2 text-white" [ngStyle]="{ background: typeColor }">{{ data.task.type }}</span>
+    <span class="text-grey-medium">
+      {{ data.task.startDate | date: 'mediumDate' }} &rarr;
+      {{ data.task.endDate | date: 'mediumDate' }}
+    </span>
+  </div>
   <p
     *ngIf="data.task.description"
     class="text-ms font-medium leading-ms text-grey-medium"

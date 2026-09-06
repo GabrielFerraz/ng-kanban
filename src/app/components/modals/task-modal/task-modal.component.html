@@ -69,6 +69,30 @@
     </textarea>
   </div>
   <div>
+    <h5 [ngClass]="{
+      'text-white': data.darkMode,
+      'text-grey-medium': !data.darkMode
+    }" class="mb-0.8 text-sm font-bold leading-sm">Type</h5>
+    <select
+      formControlName="type"
+      class="bg-gray-50 border-gray-300 text-gray-900 block w-full rounded-lg border px-2 py-4 text-sm"
+      [ngClass]="{ 'bg-grey-vdark text-white': data.darkMode, 'bg-white': !data.darkMode }"
+    >
+      <option [value]="type" *ngFor="let type of taskTypes">{{ type }}</option>
+    </select>
+  </div>
+  <div class="flex gap-1.6">
+    <div class="flex flex-1 flex-col">
+      <h5 [ngClass]="{ 'text-white': data.darkMode, 'text-grey-medium': !data.darkMode }" class="mb-0.8 text-sm font-bold leading-sm">Start Date</h5>
+      <input id="startDate" formControlName="startDate" type="date" [ngClass]="{ 'text-white': data.darkMode, 'text-black': !data.darkMode }" class="main-control h-16" />
+    </div>
+    <div class="flex flex-1 flex-col">
+      <h5 [ngClass]="{ 'text-white': data.darkMode, 'text-grey-medium': !data.darkMode }" class="mb-0.8 text-sm font-bold leading-sm">End Date</h5>
+      <input id="endDate" formControlName="endDate" type="date" [ngClass]="{ 'text-white': data.darkMode, 'text-black': !data.darkMode, 'main-control-error': form.errors?.['dateRange'] }" class="main-control h-16" />
+    </div>
+  </div>
+  <span *ngIf="form.errors?.['dateRange']" class="text-ms leading-ms text-red">End date can’t be before start date</span>
+  <div>
     <h5
       [ngClass]="{
         'text-white': data.darkMode,

@@ -8,8 +8,11 @@ import {
   signal,
 } from '@angular/core';
 import { Board } from '../../models/board.model';
-import { Task } from '../../models/task.model';
+import { Task, TaskType } from '../../models/task.model';
+import { addDays, toIsoDate } from '../../utils/date.util';
 import { BoardHttpService } from '../board-http/board-http.service';
+
+const TASK_ID_PREFIX = 'TASK-';
 
 @Injectable({
   providedIn: 'root',
@@ -44,12 +47,45 @@ export class BoardDataService {
     }
 
     if (userBoards) {
-      this.boards.set(userBoards);
+      this.boards.set(this.normalizeBoards(userBoards));
     } else {
       this.boardHttp
         .getBoards()
-        .subscribe((res) => this.boards.set(res.boards));
+        .subscribe((res) => this.boards.set(this.normalizeBoards(res.boards)));
     }
+  }
+
+  private normalizeBoards(boards: Board[]): Board[] {
+    let nextId = this.nextIdNumber(boards);
+    return boards.map((board) => ({
+      ...board,
+      columns: board.columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) => {
+          const startDate = task.startDate || toIsoDate(new Date());
+          return {
+            ...task,
+            id: task.id || `${TASK_ID_PREFIX}${nextId++}`,
+            type: task.type || TaskType.Feature,
+            startDate,
+            endDate: task.endDate || toIsoDate(addDays(new Date(), 2)),
+          };
+        }),
+      })),
+    }));
+  }
+
+  private nextIdNumber(boards: Board[]): number {
+    const numbers = boards
+      .flatMap((board) => board.columns)
+      .flatMap((column) => column.tasks)
+      .map((task) => Number(`${task.id ?? ''}`.replace(TASK_ID_PREFIX, '')))
+      .filter((id) => !isNaN(id));
+    return numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+  }
+
+  private createTaskId(): string {
+    return `${TASK_ID_PREFIX}${this.nextIdNumber(this.boards())}`;
   }
 
   selectBoard(boardIdx: number) {
@@ -81,6 +117,7 @@ export class BoardDataService {
   }
 
   addTask(task: Task) {
+    const newTask: Task = { ...task, id: task.id || this.createTaskId() };
     this.boards.update((boards) =>
       boards.map((board) =>
         board === this.activeBoard()
@@ -89,8 +126,8 @@ export class BoardDataService {
               columns: board.columns.map((column) => ({
                 ...column,
                 tasks:
-                  column.name === task.status
-                    ? [...column.tasks, task]
+                  column.name === newTask.status
+                    ? [...column.tasks, newTask]
                     : column.tasks,
               })),
             }
@@ -104,7 +141,7 @@ export class BoardDataService {
       ?.columns.map((column) => ({
         ...column,
         tasks: column.tasks.filter(
-          (task) => task.title === updateTask.task.title,
+          (task) => task.id === updateTask.task.id,
         ),
       }))
       .filter((column) => column.tasks.length > 0)
@@ -120,7 +157,7 @@ export class BoardDataService {
               columns: board.columns.map((column) => ({
                 ...column,
                 tasks: column.tasks.map((task) =>
-                  task.title === updateTask.task.title
+                  task.id === updateTask.task.id
                     ? { ...updateTask.task }
                     : task,
                 ),
@@ -140,7 +177,7 @@ export class BoardDataService {
                   return {
                     ...column,
                     tasks: column.tasks.filter(
-                      (task) => task.title !== updateTask.task.title,
+                      (task) => task.id !== updateTask.task.id,
                     ),
                   };
                 } else {
@@ -164,7 +201,7 @@ export class BoardDataService {
               ...board,
               columns: board.columns.map((column) => ({
                 ...column,
-                tasks: column.tasks.filter((task) => task !== deleteTask),
+                tasks: column.tasks.filter((task) => task.id !== deleteTask.id),
               })),
             }
           : board,
