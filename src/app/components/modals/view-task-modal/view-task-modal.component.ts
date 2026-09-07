@@ -7,6 +7,7 @@ import { TaskOption } from '../../../models/modal.model';
 import { SubTask } from '../../../models/subTask.model';
 import { TASK_TYPE_COLORS, Task } from '../../../models/task.model';
 import { FormsModule } from '@angular/forms';
+import { buildTaskMap, getUnmetDependencies } from '../../../utils/dependency.util';
 
 @Component({
   selector: 'app-view-task-modal',
@@ -21,6 +22,8 @@ export class ViewTaskModalComponent implements OnInit {
   data = inject<{ task: Task; darkMode: boolean; columns: Column[] }>(MAT_DIALOG_DATA);
 
   activeStatus!: Column;
+  dependencyTasks: Task[] = [];
+  unmetDependencies: Task[] = [];
 
   get typeColor(): string {
     return TASK_TYPE_COLORS[this.data.task.type] ?? '#828fa3';
@@ -38,6 +41,18 @@ export class ViewTaskModalComponent implements OnInit {
           }) as Column,
       )
       .filter((column) => column.tasks.length > 0)[0];
+
+    const tasksById = buildTaskMap(
+      this.data.columns.flatMap((column) => column.tasks),
+    );
+    this.dependencyTasks = (this.data.task.dependencies ?? [])
+      .map((id) => tasksById.get(id))
+      .filter((task): task is Task => !!task);
+    this.unmetDependencies = getUnmetDependencies(
+      this.data.task,
+      tasksById,
+      this.data.columns,
+    );
   }
 
   updateSubtask(updateSubtask: SubTask): void {

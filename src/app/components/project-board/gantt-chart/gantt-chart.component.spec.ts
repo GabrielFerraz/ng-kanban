@@ -17,6 +17,7 @@ describe('GanttChartComponent', () => {
       startDate: '2024-01-01',
       endDate: '2024-01-03',
       subtasks: [],
+      dependencies: [],
       ...overrides,
     };
   }

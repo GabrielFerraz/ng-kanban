@@ -13,6 +13,7 @@ import { Task } from '../../models/task.model';
 import { MatDialog } from '@angular/material/dialog';
 import { ViewTaskModalComponent } from '../modals/view-task-modal/view-task-modal.component';
 import { TaskOption } from '../../models/modal.model';
+import { buildTaskMap, getUnmetDependencies } from '../../utils/dependency.util';
 
 export type BoardTab = 'board' | 'gantt';
 
@@ -37,6 +38,7 @@ export class ProjectBoardComponent implements OnChanges {
   colors = ['#49C4E5', '#8471F2', '#67E2AE'];
   activeTab: BoardTab = 'board';
   boardTasks: Task[] = [];
+  blockedTaskIds = new Set<string>();
 
   @Input() activeBoard!: Board | null;
   @Input() darkMode = false;
@@ -49,6 +51,14 @@ export class ProjectBoardComponent implements OnChanges {
 
   ngOnChanges(): void {
     this.boardTasks = (this.activeBoard?.columns ?? []).flatMap((column) => column.tasks ?? []);
+
+    const tasksById = buildTaskMap(this.boardTasks);
+    const columns = this.activeBoard?.columns ?? [];
+    this.blockedTaskIds = new Set(
+      this.boardTasks
+        .filter((task) => getUnmetDependencies(task, tasksById, columns).length > 0)
+        .map((task) => task.id),
+    );
   }
 
   selectTab(tab: BoardTab): void {

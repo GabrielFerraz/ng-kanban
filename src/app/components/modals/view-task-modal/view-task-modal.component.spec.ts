@@ -23,6 +23,7 @@ describe('ViewTaskModalComponent', () => {
       { title: 'Sub 1', isCompleted: true },
       { title: 'Sub 2', isCompleted: false },
     ],
+    dependencies: [],
   };
 
   const columns: Column[] = [

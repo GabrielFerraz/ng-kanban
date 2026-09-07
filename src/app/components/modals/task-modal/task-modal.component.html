@@ -94,6 +94,43 @@
   @if (form.errors?.['dateRange']) {
     <span class="text-ms leading-ms text-red">End date can’t be before start date</span>
   }
+  @if (availableDependencies.length) {
+    <div>
+      <h5
+        [ngClass]="{
+          'text-white': data.darkMode,
+          'text-grey-medium': !data.darkMode
+        }"
+        class="mb-0.8 text-sm font-bold leading-sm"
+      >
+        Depends On
+      </h5>
+      <div class="flex max-h-[16rem] flex-col gap-0.8 overflow-y-auto">
+        @for (dep of availableDependencies; track dep.id) {
+          <label
+            [ngClass]="{
+              'bg-grey-vdark': data.darkMode,
+              'bg-grey-light': !data.darkMode
+            }"
+            class="flex items-center gap-1.2 rounded-md p-1.2"
+          >
+            <input
+              type="checkbox"
+              [checked]="isDependencySelected(dep.id)"
+              (change)="toggleDependency(dep.id)"
+              class="h-1.6 w-1.6 rounded border-grey-medium/25 checked:text-purple focus:ring-transparent focus:ring-offset-0"
+            />
+            <span
+              [ngClass]="{ 'text-white': data.darkMode, 'text-black': !data.darkMode }"
+              class="text-sm font-medium leading-sm"
+            >
+              {{ dep.id }} · {{ dep.title }}
+            </span>
+          </label>
+        }
+      </div>
+    </div>
+  }
   <div>
     <h5
       [ngClass]="{

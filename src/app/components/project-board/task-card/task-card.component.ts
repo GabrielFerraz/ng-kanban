@@ -12,6 +12,7 @@ import { SubTask } from '../../../models/subTask.model';
 })
 export class TaskCardComponent {
   @Input() task!: Task;
+  @Input() blocked = false;
 
   calculateCompleted(subtasks: SubTask[]): number {
     return subtasks.filter((s) => s.isCompleted).length;

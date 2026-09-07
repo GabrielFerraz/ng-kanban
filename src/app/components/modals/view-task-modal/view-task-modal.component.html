@@ -52,6 +52,39 @@
       {{ data.task.description }}
     </p>
   }
+  @if (dependencyTasks.length) {
+    <div>
+      <h5
+        [ngClass]="{
+          'text-white': data.darkMode,
+          'text-grey-medium': !data.darkMode
+        }"
+        class="mb-0.8 text-sm font-bold leading-sm"
+      >
+        Depends On
+      </h5>
+      <div class="flex flex-wrap gap-0.8">
+        @for (dep of dependencyTasks; track dep.id) {
+          <span
+            [ngClass]="
+              unmetDependencies.includes(dep)
+                ? 'bg-red/10 text-red'
+                : 'bg-grey-light text-grey-medium dark:bg-grey-vdark'
+            "
+            class="rounded-full px-1.2 text-sm font-bold leading-sm"
+          >
+            {{ dep.id }} · {{ dep.title }}
+          </span>
+        }
+      </div>
+      @if (unmetDependencies.length) {
+        <p class="mt-0.8 text-ms font-medium leading-ms text-red">
+          Blocked by {{ unmetDependencies.length }} incomplete
+          {{ unmetDependencies.length === 1 ? "dependency" : "dependencies" }}
+        </p>
+      }
+    </div>
+  }
   <div>
     <h5
       [ngClass]="{

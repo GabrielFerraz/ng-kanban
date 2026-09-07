@@ -30,4 +30,5 @@ export interface Task {
   startDate: string;
   endDate: string;
   subtasks: SubTask[];
+  dependencies: string[];
 }

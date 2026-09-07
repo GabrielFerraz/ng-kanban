@@ -51,6 +51,7 @@ describe('TaskModalComponent', () => {
       startDate: '2024-01-01',
       endDate: '2024-01-05',
       subtasks: [{ title: 'Sub 1', isCompleted: false }],
+      dependencies: [],
     };
     configure(task, true);
 

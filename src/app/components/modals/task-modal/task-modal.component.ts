@@ -13,6 +13,7 @@ import { Column } from '../../../models/column.model';
 import { TASK_TYPES, Task, TaskType } from '../../../models/task.model';
 import { SubTask } from '../../../models/subTask.model';
 import { addDays, toIsoDate } from '../../../utils/date.util';
+import { buildTaskMap, getDescendantIds } from '../../../utils/dependency.util';
 import { dateRangeValidator } from './date-range.validator';
 
 @Component({
@@ -38,9 +39,23 @@ export class TaskModalComponent implements OnInit {
   form!: FormGroup;
   opened = false;
   taskTypes = TASK_TYPES;
+  availableDependencies: Task[] = [];
 
   ngOnInit(): void {
     this.buildForm();
+    this.buildAvailableDependencies();
+  }
+
+  private buildAvailableDependencies(): void {
+    const allTasks = this.data.columns.flatMap((column) => column.tasks);
+    const currentId = this.data.task?.id;
+    const excluded = currentId
+      ? getDescendantIds(currentId, buildTaskMap(allTasks))
+      : new Set<string>();
+
+    this.availableDependencies = allTasks.filter(
+      (task) => task.id !== currentId && !excluded.has(task.id),
+    );
   }
 
   buildForm() {
@@ -76,6 +91,7 @@ export class TaskModalComponent implements OnInit {
           title: ['', Validators.required],
         }),
       ]),
+      dependencies: this.fb.control<string[]>(this.data.task?.dependencies ?? []),
     });
 
     this.form.addValidators(dateRangeValidator('startDate', 'endDate'));
@@ -89,6 +105,24 @@ export class TaskModalComponent implements OnInit {
 
   get subTaskArray() {
     return this.form.get('subtasks') as FormArray;
+  }
+
+  isDependencySelected(taskId: string): boolean {
+    return ((this.form.get('dependencies')?.value as string[]) ?? []).includes(
+      taskId,
+    );
+  }
+
+  toggleDependency(taskId: string): void {
+    const control = this.form.get('dependencies')!;
+    const current: string[] = control.value ?? [];
+
+    control.setValue(
+      current.includes(taskId)
+        ? current.filter((id) => id !== taskId)
+        : [...current, taskId],
+    );
+    control.markAsDirty();
   }
 
   addSubtask(subtask: SubTask = { title: '', isCompleted: false }) {

@@ -26,6 +26,7 @@ describe('TaskCardComponent', () => {
         { title: 'Sub 1', isCompleted: true },
         { title: 'Sub 2', isCompleted: false },
       ],
+      dependencies: [],
     };
     fixture.detectChanges();
   });

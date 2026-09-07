@@ -8,6 +8,7 @@ export type SortDirection = 'asc' | 'desc';
 export interface GanttRow { task: Task; start: Date; end: Date; duration: number; offset: number; color: string; }
 export interface GanttDay { date: Date; label: number; weekend: boolean; today: boolean; }
 export interface GanttSegment { label: string; days: number; }
+export interface GanttConnector { path: string; blocked: boolean; }
 
 @Component({
   selector: 'app-gantt-chart',
@@ -31,10 +32,12 @@ export class GanttChartComponent implements OnChanges {
   days: GanttDay[] = [];
   months: GanttSegment[] = [];
   weeks: GanttSegment[] = [];
+  connectors: GanttConnector[] = [];
   todayOffset: number | null = null;
   private syncing = false;
   get headerHeight(): number { return this.headerRowHeight * 3; }
   get timelineWidth(): number { return this.days.length * this.dayWidth; }
+  get timelineHeight(): number { return this.rows.length * this.rowHeight; }
   ngOnChanges(): void { this.buildTimeline(); }
   sortBy(key: GanttSortKey): void {
     if (this.sortKey === key) this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -65,6 +68,7 @@ export class GanttChartComponent implements OnChanges {
     this.rows = this.sortRows(rows.map((row) => ({ ...row, offset: daysBetween(timelineStart, row.start) })));
     const today = startOfDay(new Date());
     this.todayOffset = today >= timelineStart && today <= timelineEnd ? daysBetween(timelineStart, today) : null;
+    this.connectors = this.buildConnectors(this.rows);
   }
   private toRow(task: Task): GanttRow {
     const today = startOfDay(new Date());
@@ -99,4 +103,25 @@ export class GanttChartComponent implements OnChanges {
     }
   }
   private compareIds(a: GanttRow, b: GanttRow): number { return a.task.id.localeCompare(b.task.id, undefined, { numeric: true }); }
+  private buildConnectors(rows: GanttRow[]): GanttConnector[] {
+    const indexById = new Map(rows.map((row, index) => [row.task.id, index]));
+    const connectors: GanttConnector[] = [];
+    rows.forEach((row, toIndex) => {
+      (row.task.dependencies ?? []).forEach((depId) => {
+        const fromIndex = indexById.get(depId);
+        if (fromIndex === undefined) return;
+        const fromRow = rows[fromIndex];
+        const x1 = (fromRow.offset + fromRow.duration) * this.dayWidth;
+        const y1 = fromIndex * this.rowHeight + this.rowHeight / 2;
+        const x2 = row.offset * this.dayWidth;
+        const y2 = toIndex * this.rowHeight + this.rowHeight / 2;
+        const midX = x1 + Math.max((x2 - x1) / 2, 12);
+        connectors.push({
+          path: `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`,
+          blocked: fromRow.end.getTime() >= row.start.getTime(),
+        });
+      });
+    });
+    return connectors;
+  }
 }

@@ -14,7 +14,23 @@
     </div></div>
     <div #rightPane (scroll)="syncScroll('right')" class="gantt-pane w-1/2 shrink-0 overflow-auto"><div [style.width.px]="timelineWidth">
       <div class="sticky top-0 z-20 bg-white dark:bg-grey-dark" [style.height.px]="headerHeight"><div class="flex" [style.height.px]="headerRowHeight">@for (month of months; track $index) {<div class="flex items-center justify-center overflow-hidden whitespace-nowrap border-b border-r border-lines-light text-sm font-bold leading-sm text-black dark:border-lines-dark dark:text-white" [style.width.px]="month.days * dayWidth">{{ month.label }}</div>}</div><div class="flex" [style.height.px]="headerRowHeight">@for (week of weeks; track $index) {<div class="flex items-center justify-center overflow-hidden whitespace-nowrap border-b border-r border-lines-light text-sm font-bold leading-sm text-grey-medium dark:border-lines-dark" [style.width.px]="week.days * dayWidth">{{ week.label }}</div>}</div><div class="flex" [style.height.px]="headerRowHeight">@for (day of days; track $index) {<div class="flex items-center justify-center border-b border-r border-lines-light text-sm leading-sm text-grey-medium dark:border-lines-dark" [ngClass]="{ 'bg-grey-light dark:bg-grey-vdark': day.weekend, 'font-bold text-purple': day.today }" [style.width.px]="dayWidth">{{ day.label }}</div>}</div></div>
-      <div class="relative"><div class="pointer-events-none absolute inset-0 flex">@for (day of days; track $index) {<div class="h-full border-r border-lines-light dark:border-lines-dark" [ngClass]="{ 'bg-grey-light dark:bg-grey-vdark': day.weekend }" [style.width.px]="dayWidth"></div>}</div>@if (todayOffset !== null) {<div class="pointer-events-none absolute inset-y-0 z-10 w-px bg-purple" [style.left.px]="todayOffset * dayWidth"></div>}@for (row of rows; track row.task.id) {<div class="relative border-b border-lines-light dark:border-lines-dark" [style.height.px]="rowHeight"><div class="absolute top-1/2 flex -translate-y-1/2 items-center" [style.left.px]="row.offset * dayWidth" [style.width.px]="row.duration * dayWidth"><span class="absolute right-full mr-0.8 whitespace-nowrap text-sm leading-sm text-grey-medium">{{ row.start | date: 'MMM d' }}</span><div class="h-2.4 w-full rounded-full opacity-90" [ngStyle]="{ background: row.color }" [title]="row.task.title"></div><span class="absolute left-full ml-0.8 whitespace-nowrap text-sm leading-sm text-grey-medium">{{ row.end | date: 'MMM d' }}</span></div></div>}</div>
+      <div class="relative"><div class="pointer-events-none absolute inset-0 flex">@for (day of days; track $index) {<div class="h-full border-r border-lines-light dark:border-lines-dark" [ngClass]="{ 'bg-grey-light dark:bg-grey-vdark': day.weekend }" [style.width.px]="dayWidth"></div>}</div>@if (todayOffset !== null) {<div class="pointer-events-none absolute inset-y-0 z-10 w-px bg-purple" [style.left.px]="todayOffset * dayWidth"></div>}
+        @if (connectors.length) {
+          <svg class="pointer-events-none absolute inset-0 z-[5]" [attr.width]="timelineWidth" [attr.height]="timelineHeight">
+            <defs>
+              <marker id="gantt-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" class="fill-grey-medium" />
+              </marker>
+              <marker id="gantt-arrow-blocked" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" class="fill-red" />
+              </marker>
+            </defs>
+            @for (connector of connectors; track $index) {
+              <path [attr.d]="connector.path" fill="none" [ngClass]="connector.blocked ? 'stroke-red' : 'stroke-grey-medium'" stroke-width="1.5" [attr.marker-end]="connector.blocked ? 'url(#gantt-arrow-blocked)' : 'url(#gantt-arrow)'" />
+            }
+          </svg>
+        }
+        @for (row of rows; track row.task.id) {<div class="relative border-b border-lines-light dark:border-lines-dark" [style.height.px]="rowHeight"><div class="absolute top-1/2 flex -translate-y-1/2 items-center" [style.left.px]="row.offset * dayWidth" [style.width.px]="row.duration * dayWidth"><span class="absolute right-full mr-0.8 whitespace-nowrap text-sm leading-sm text-grey-medium">{{ row.start | date: 'MMM d' }}</span><div class="h-2.4 w-full rounded-full opacity-90" [ngStyle]="{ background: row.color }" [title]="row.task.title"></div><span class="absolute left-full ml-0.8 whitespace-nowrap text-sm leading-sm text-grey-medium">{{ row.end | date: 'MMM d' }}</span></div></div>}</div>
     </div></div>
   </div>
 } @else {

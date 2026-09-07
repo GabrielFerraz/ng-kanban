@@ -6,6 +6,9 @@
   <h2 class="mb-3 w-96 text-md font-bold leading-md">
     {{ task.title }}
   </h2>
+  @if (blocked) {
+    <p class="mb-3 text-sm font-bold leading-sm text-red">⛔ Blocked</p>
+  }
   <p class="text-sm font-bold leading-sm text-grey-medium">
     {{ calculateCompleted(task.subtasks) }} of
     {{ task.subtasks.length }} subtask{{ task.subtasks.length > 1 ? "s" : "" }}

@@ -68,6 +68,7 @@ export class BoardDataService {
             type: task.type || TaskType.Feature,
             startDate,
             endDate: task.endDate || toIsoDate(addDays(new Date(), 2)),
+            dependencies: task.dependencies ?? [],
           };
         }),
       })),
@@ -116,7 +117,11 @@ export class BoardDataService {
   }
 
   addTask(task: Task) {
-    const newTask: Task = { ...task, id: task.id || this.createTaskId() };
+    const newTask: Task = {
+      ...task,
+      id: task.id || this.createTaskId(),
+      dependencies: task.dependencies ?? [],
+    };
     this.boards.update((boards) =>
       boards.map((board) =>
         board === this.activeBoard()
@@ -200,7 +205,14 @@ export class BoardDataService {
               ...board,
               columns: board.columns.map((column) => ({
                 ...column,
-                tasks: column.tasks.filter((task) => task.id !== deleteTask.id),
+                tasks: column.tasks
+                  .filter((task) => task.id !== deleteTask.id)
+                  .map((task) => ({
+                    ...task,
+                    dependencies: task.dependencies.filter(
+                      (id) => id !== deleteTask.id,
+                    ),
+                  })),
               })),
             }
           : board,

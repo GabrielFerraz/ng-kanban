@@ -37,6 +37,7 @@
                         (click)="viewTask(task)"
                         (keyup.enter)="viewTask(task)"
                         [task]="task"
+                        [blocked]="blockedTaskIds.has(task.id)"
                       >
                         <div class="drag-handle" cdkDragHandle>
                           <svg width="24px" fill="#828fa3" viewBox="0 0 24 24">

@@ -27,6 +27,7 @@ describe('ProjectBoardComponent', () => {
             startDate: '',
             endDate: '',
             subtasks: [],
+            dependencies: [],
           },
         ],
       },
