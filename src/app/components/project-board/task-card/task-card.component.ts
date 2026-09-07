@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Task } from '../../../models/task.model';
 import { SubTask } from '../../../models/subTask.model';
 
@@ -8,6 +8,7 @@ import { SubTask } from '../../../models/subTask.model';
   imports: [],
   templateUrl: './task-card.component.html',
   styleUrl: './task-card.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskCardComponent {
   @Input() task!: Task;

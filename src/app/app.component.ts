@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterOutlet } from '@angular/router';
 import { BoardModalComponent } from './components/modals/board-modal/board-modal.component';
@@ -31,8 +31,12 @@ import { BoardDataService } from './services/board-data/board-data.service';
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
+  private dialog = inject(MatDialog);
+  private boardDataService = inject(BoardDataService);
+
   darkMode = false;
 
   isSidebarOpen = true;
@@ -43,10 +47,6 @@ export class AppComponent implements OnInit {
 
   currentIdx = this.boardDataService.currentIdx;
 
-  constructor(
-    private dialog: MatDialog,
-    private boardDataService: BoardDataService,
-  ) {}
 
   ngOnInit(): void {
     this.boardDataService.getBoards();

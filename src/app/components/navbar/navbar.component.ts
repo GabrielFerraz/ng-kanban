@@ -1,14 +1,15 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { Board } from '../../models/board.model';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [NgClass, NgIf, NgFor, MatMenuModule],
+  imports: [NgClass, MatMenuModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   @Input() opened!: boolean;

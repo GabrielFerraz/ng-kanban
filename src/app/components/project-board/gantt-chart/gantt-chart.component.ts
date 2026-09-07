@@ -1,5 +1,5 @@
-import { DatePipe, NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
-import { Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
+import { DatePipe, NgClass, NgStyle } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import { TASK_TYPE_COLORS, Task } from '../../../models/task.model';
 import { addDays, daysBetween, durationInDays, endOfWeek, getIsoWeek, isWeekend, parseIsoDate, startOfDay, startOfWeek } from '../../../utils/date.util';
 
@@ -12,9 +12,10 @@ export interface GanttSegment { label: string; days: number; }
 @Component({
   selector: 'app-gantt-chart',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, NgStyle, DatePipe],
+  imports: [NgClass, NgStyle, DatePipe],
   templateUrl: './gantt-chart.component.html',
   styleUrl: './gantt-chart.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GanttChartComponent implements OnChanges {
   @Input() tasks: Task[] = [];
@@ -40,8 +41,6 @@ export class GanttChartComponent implements OnChanges {
     else { this.sortKey = key; this.sortDirection = 'asc'; }
     this.rows = this.sortRows(this.rows);
   }
-  trackByRow(index: number, row: GanttRow): string { return row.task.id; }
-  trackByDay(index: number): number { return index; }
   sortIcon(key: GanttSortKey): string { return this.sortKey === key ? (this.sortDirection === 'asc' ? '▲' : '▼') : ''; }
   syncScroll(source: 'left' | 'right'): void {
     const from = source === 'left' ? this.leftPane : this.rightPane;

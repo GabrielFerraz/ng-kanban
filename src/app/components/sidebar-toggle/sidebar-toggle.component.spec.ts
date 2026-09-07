@@ -19,4 +19,22 @@ describe('SidebarToggleComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('emits openSidebar when button clicked', () => {
+    const spy = jasmine.createSpy('openSidebar');
+    component.openSidebar.subscribe(spy);
+
+    (fixture.nativeElement as HTMLElement).querySelector('button')?.click();
+
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('expandSidebar emits directly', () => {
+    const spy = jasmine.createSpy('openSidebar');
+    component.openSidebar.subscribe(spy);
+
+    component.expandSidebar();
+
+    expect(spy).toHaveBeenCalled();
+  });
 });

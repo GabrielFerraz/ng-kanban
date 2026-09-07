@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'app-sidebar-toggle',
@@ -6,6 +6,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
   imports: [],
   templateUrl: './sidebar-toggle.component.html',
   styleUrl: './sidebar-toggle.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarToggleComponent {
   @Output() openSidebar = new EventEmitter<void>();

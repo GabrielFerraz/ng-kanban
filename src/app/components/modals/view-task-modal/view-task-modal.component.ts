@@ -1,5 +1,5 @@
-import { DatePipe, NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { DatePipe, NgClass, NgStyle } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
@@ -11,22 +11,20 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-view-task-modal',
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, NgStyle, DatePipe, MatMenuModule, FormsModule],
+  imports: [NgClass, NgStyle, DatePipe, MatMenuModule, FormsModule],
   templateUrl: './view-task-modal.component.html',
   styleUrl: './view-task-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ViewTaskModalComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<ViewTaskModalComponent>>(MatDialogRef);
+  data = inject<{ task: Task; darkMode: boolean; columns: Column[] }>(MAT_DIALOG_DATA);
+
   activeStatus!: Column;
 
   get typeColor(): string {
     return TASK_TYPE_COLORS[this.data.task.type] ?? '#828fa3';
   }
-
-  constructor(
-    private dialogRef: MatDialogRef<ViewTaskModalComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: { task: Task; darkMode: boolean; columns: Column[] },
-  ) {}
 
   ngOnInit(): void {
     this.activeStatus = this.data.columns

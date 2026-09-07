@@ -63,16 +63,12 @@
     (menuClosed)="close()"
     (menuOpened)="open()"
   >
-    <img
-      src="assets/images/icon-chevron-down.svg"
-      alt="arrow-down"
-      *ngIf="!sidebarShown"
-    />
-    <img
-      src="assets/images/icon-chevron-up.svg"
-      alt="arrow-up"
-      *ngIf="sidebarShown"
-    />
+    @if (!sidebarShown) {
+      <img src="assets/images/icon-chevron-down.svg" alt="arrow-down" />
+    }
+    @if (sidebarShown) {
+      <img src="assets/images/icon-chevron-up.svg" alt="arrow-up" />
+    }
   </button>
   <button
     [disabled]="!activeBoard?.columns?.length"
@@ -121,36 +117,37 @@
       >
         All boards ({{ boards.length }})
       </h2>
-      <ng-container *ngFor="let board of boards; let i = index">
-        <button
-          *ngIf="board.name === activeBoard?.name"
-          class="flex h-4.8 items-center rounded-r-full bg-purple pl-2.4 text-white"
-        >
-          <img
-            src="assets/images/icon-board-active.svg"
-            alt="board"
-            class="mr-1.2 h-1.6 w-1.6"
-          />
-          <span class="text-md font-bold leading-md">{{ board.name }}</span>
-        </button>
-        <button
-          *ngIf="!(board.name === activeBoard?.name)"
-          (click)="selectBoard(i)"
-          class="marker flex h-4.8 items-center rounded-r-full pl-2.4 text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white"
-        >
-          <img
-            src="assets/images/icon-board.svg"
-            alt="board"
-            class="idle mr-1.2 h-1.6 w-1.6"
-          />
-          <img
-            src="assets/images/icon-board-new.svg"
-            alt="board"
-            class="cover mr-1.2 h-1.6 w-1.6"
-          />
-          <span class="text-md font-bold leading-md">{{ board.name }}</span>
-        </button>
-      </ng-container>
+      @for (board of boards; track board.name; let i = $index) {
+        @if (board.name === activeBoard?.name) {
+          <button
+            class="flex h-4.8 items-center rounded-r-full bg-purple pl-2.4 text-white"
+          >
+            <img
+              src="assets/images/icon-board-active.svg"
+              alt="board"
+              class="mr-1.2 h-1.6 w-1.6"
+            />
+            <span class="text-md font-bold leading-md">{{ board.name }}</span>
+          </button>
+        } @else {
+          <button
+            (click)="selectBoard(i)"
+            class="marker flex h-4.8 items-center rounded-r-full pl-2.4 text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white"
+          >
+            <img
+              src="assets/images/icon-board.svg"
+              alt="board"
+              class="idle mr-1.2 h-1.6 w-1.6"
+            />
+            <img
+              src="assets/images/icon-board-new.svg"
+              alt="board"
+              class="cover mr-1.2 h-1.6 w-1.6"
+            />
+            <span class="text-md font-bold leading-md">{{ board.name }}</span>
+          </button>
+        }
+      }
       <button
         (click)="addBoard()"
         class="flex h-4.8 items-center rounded-r-full pl-2.4 hover:bg-purple-low dark:hover:bg-white"

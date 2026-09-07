@@ -1,5 +1,5 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -13,18 +13,17 @@ import { Board } from '../../../models/board.model';
 @Component({
   selector: 'app-board-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf, NgFor, NgClass],
+  imports: [ReactiveFormsModule, NgClass],
   templateUrl: './board-modal.component.html',
   styleUrl: './board-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BoardModalComponent implements OnInit {
-  form!: FormGroup;
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<BoardModalComponent>>(MatDialogRef);
+  data = inject<{ board: Board; darkMode: boolean }>(MAT_DIALOG_DATA);
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<BoardModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { board: Board; darkMode: boolean },
-  ) {}
+  form!: FormGroup;
 
   ngOnInit(): void {
     this.buildForm();

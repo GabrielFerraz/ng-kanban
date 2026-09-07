@@ -1,5 +1,5 @@
-import { NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { NgClass, NgStyle } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnChanges, Output } from '@angular/core';
 import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { TaskCardComponent } from './task-card/task-card.component';
 import {
@@ -20,8 +20,6 @@ export type BoardTab = 'board' | 'gantt';
   selector: 'app-project-board',
   standalone: true,
   imports: [
-    NgIf,
-    NgFor,
     NgStyle,
     NgClass,
     TaskCardComponent,
@@ -31,8 +29,11 @@ export type BoardTab = 'board' | 'gantt';
   ],
   templateUrl: './project-board.component.html',
   styleUrl: './project-board.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectBoardComponent implements OnChanges {
+  private dialog = inject(MatDialog);
+
   colors = ['#49C4E5', '#8471F2', '#67E2AE'];
   activeTab: BoardTab = 'board';
   boardTasks: Task[] = [];
@@ -45,7 +46,6 @@ export class ProjectBoardComponent implements OnChanges {
   @Output() taskUpdateModal = new EventEmitter<Task>();
   @Output() taskDeleteModal = new EventEmitter<Task>();
 
-  constructor(private dialog: MatDialog) {}
 
   ngOnChanges(): void {
     this.boardTasks = (this.activeBoard?.columns ?? []).flatMap((column) => column.tasks ?? []);

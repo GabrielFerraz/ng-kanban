@@ -37,16 +37,14 @@
         }"
         class="main-control h-16"
       />
-      <span
-        *ngIf="
-          form.get('name')?.dirty &&
-          form.get('name')?.touched &&
-          form.get('name')?.invalid &&
-          form.get('name')?.errors?.['required']
-        "
-        class="main-error"
-        >Can’t be empty</span
-      >
+      @if (
+        form.get('name')?.dirty &&
+        form.get('name')?.touched &&
+        form.get('name')?.invalid &&
+        form.get('name')?.errors?.['required']
+      ) {
+        <span class="main-error">Can’t be empty</span>
+      }
     </div>
   </div>
   <div>
@@ -60,56 +58,50 @@
       Board Columns
     </h5>
     <div class="flex flex-col gap-1.2" formArrayName="columns">
-      <div
-        *ngFor="let control of columnArray.controls; let i = index"
-        class="flex gap-1.6"
-      >
-        <div class="relative flex-1" formGroupName="{{ i }}">
-          <input
-            [id]="i"
-            type="text"
-            [ngClass]="{
-              'text-white': data.darkMode,
-              'text-black': !data.darkMode,
-              'main-control-error':
-                control.get('name')?.dirty &&
-                control.get('name')?.touched &&
-                control.get('name')?.invalid &&
-                control.get('name')?.errors?.['required']
-            }"
-            class="main-control h-16"
-            formControlName="name"
-          />
-          <span
-            *ngIf="
+      @for (control of columnArray.controls; track control; let i = $index) {
+        <div class="flex gap-1.6">
+          <div class="relative flex-1" formGroupName="{{ i }}">
+            <input
+              [id]="i"
+              type="text"
+              [ngClass]="{
+                'text-white': data.darkMode,
+                'text-black': !data.darkMode,
+                'main-control-error':
+                  control.get('name')?.dirty &&
+                  control.get('name')?.touched &&
+                  control.get('name')?.invalid &&
+                  control.get('name')?.errors?.['required']
+              }"
+              class="main-control h-16"
+              formControlName="name"
+            />
+            @if (
               control.get('name')?.dirty &&
               control.get('name')?.touched &&
               control.get('name')?.invalid &&
               control.get('name')?.errors?.['required']
-            "
-            class="main-error"
-            >Can’t be empty</span
-          >
-        </div>
+            ) {
+              <span class="main-error">Can’t be empty</span>
+            }
+          </div>
 
-        <button
-          type="button"
-          class="marker"
-          *ngIf="i !== 0"
-          (click)="removeColumn(i)"
-        >
-          <img
-            src="assets/images/icon-cross.svg"
-            alt="remove"
-            class="idle h-6 w-6"
-          />
-          <img
-            src="assets/images/icon-cross-hover.svg"
-            alt="remove"
-            class="cover h-6 w-6"
-          />
-        </button>
-      </div>
+          @if (i !== 0) {
+            <button type="button" class="marker" (click)="removeColumn(i)">
+              <img
+                src="assets/images/icon-cross.svg"
+                alt="remove"
+                class="idle h-6 w-6"
+              />
+              <img
+                src="assets/images/icon-cross-hover.svg"
+                alt="remove"
+                class="cover h-6 w-6"
+              />
+            </button>
+          }
+        </div>
+      }
       <button
         type="button"
         (click)="addColumn()"

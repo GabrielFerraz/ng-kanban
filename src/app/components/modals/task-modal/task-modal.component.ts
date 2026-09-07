@@ -1,5 +1,5 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, OnInit, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -18,28 +18,26 @@ import { dateRangeValidator } from './date-range.validator';
 @Component({
   selector: 'app-task-modal',
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, ReactiveFormsModule, MatMenuModule],
+  imports: [NgClass, ReactiveFormsModule, MatMenuModule],
   templateUrl: './task-modal.component.html',
   styleUrl: './task-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskModalComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<TaskModalComponent>>(MatDialogRef);
+  data = inject<{
+    task: Task;
+    darkMode: boolean;
+    columns: Column[];
+    editMode: boolean;
+  }>(MAT_DIALOG_DATA);
+
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
 
   form!: FormGroup;
   opened = false;
   taskTypes = TASK_TYPES;
-
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<TaskModalComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      task: Task;
-      darkMode: boolean;
-      columns: Column[];
-      editMode: boolean;
-    },
-  ) {}
 
   ngOnInit(): void {
     this.buildForm();

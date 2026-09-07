@@ -1,20 +1,18 @@
-import { NgClass, NgIf } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-delete-modal',
   standalone: true,
-  imports: [NgClass, NgIf],
+  imports: [NgClass],
   templateUrl: './delete-modal.component.html',
   styleUrl: './delete-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DeleteModalComponent {
-  constructor(
-    private dialogRef: MatDialogRef<DeleteModalComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: { name: string; isBoard: boolean; darkMode: boolean },
-  ) {}
+  private dialogRef = inject<MatDialogRef<DeleteModalComponent>>(MatDialogRef);
+  data = inject<{ name: string; isBoard: boolean; darkMode: boolean }>(MAT_DIALOG_DATA);
 
   remove(): void {
     this.dialogRef.close(true);

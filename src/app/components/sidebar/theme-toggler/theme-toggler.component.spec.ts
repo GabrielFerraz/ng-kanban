@@ -19,4 +19,18 @@ describe('ThemeTogglerComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('emits enableDarkMode when checkbox toggled', () => {
+    const spy = jasmine.createSpy('enableDarkMode');
+    component.enableDarkMode.subscribe(spy);
+
+    component.toggleDarkMode.setValue(true);
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(true);
+  });
+
+  it('defaults to light mode', () => {
+    expect(component.toggleDarkMode.value).toBeFalse();
+  });
 });

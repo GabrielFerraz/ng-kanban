@@ -1,10 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
-  Inject,
   Injectable,
   PLATFORM_ID,
   computed,
   effect,
+  inject,
   signal,
 } from '@angular/core';
 import { Board } from '../../models/board.model';
@@ -18,6 +18,9 @@ const TASK_ID_PREFIX = 'TASK-';
   providedIn: 'root',
 })
 export class BoardDataService {
+  private boardHttp = inject(BoardHttpService);
+  private platformId = inject(PLATFORM_ID);
+
   boards = signal<Board[]>([]);
 
   currentIdx = signal(0);
@@ -32,10 +35,6 @@ export class BoardDataService {
     }
   });
 
-  constructor(
-    private boardHttp: BoardHttpService,
-    @Inject(PLATFORM_ID) private platformId: object,
-  ) {}
 
   getBoards(): void {
     let userBoards!: Board[] | null;

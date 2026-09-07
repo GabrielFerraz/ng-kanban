@@ -1,14 +1,15 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { ThemeTogglerComponent } from './theme-toggler/theme-toggler.component';
 import { Board } from '../../models/board.model';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [NgClass, NgIf, NgFor, ThemeTogglerComponent],
+  imports: [NgClass, ThemeTogglerComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
   @Input() boards!: Board[];
