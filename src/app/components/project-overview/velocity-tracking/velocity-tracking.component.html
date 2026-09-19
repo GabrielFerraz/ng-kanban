@@ -1,0 +1,300 @@
+<div class="velocity-widget flex flex-col gap-2.4">
+  <!-- Header with Consistency & Velocity Metrics -->
+  <div class="flex flex-wrap items-center justify-between gap-1.6 border-b border-lines-light pb-2 dark:border-lines-dark">
+    <div>
+      <h3 class="text-md font-bold leading-md text-black dark:text-white">
+        Weekly Velocity & Consistency Tracking
+      </h3>
+      <p class="text-sm font-medium text-grey-medium">
+        Completed tasks per week across all boards with consistency metrics
+      </p>
+    </div>
+
+    <!-- Consistency Rating Pill -->
+    @if (velocity) {
+      <div class="flex items-center gap-1.2">
+        <span class="text-sm font-medium text-grey-medium">Consistency:</span>
+        <span
+          class="rounded-full px-1.6 py-0.4 text-sm font-bold"
+          [ngClass]="{
+            'bg-[#67e2ae]/15 text-[#10b981]': velocity.consistencyRating === 'High',
+            'bg-purple/15 text-purple': velocity.consistencyRating === 'Moderate',
+            'bg-red/15 text-red': velocity.consistencyRating === 'Volatile'
+          }"
+        >
+          {{ velocity.consistencyPercentage }}% · {{ velocity.consistencyRating }} Consistency
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="grid grid-cols-2 gap-1.2 sm:grid-cols-4">
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Average Velocity</span>
+      <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
+        {{ velocity?.averageVelocity || 0 }} <span class="text-sm font-normal text-grey-medium">tasks / wk</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Consistency Score</span>
+      <div class="mt-0.4 text-lg font-bold text-purple">
+        {{ velocity?.consistencyPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">(σ = ±{{ velocity?.standardDeviation || 0 }})</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Total Completed</span>
+      <div class="mt-0.4 text-lg font-bold text-[#67e2ae]">
+        {{ velocity?.totalCompleted || 0 }} <span class="text-sm font-normal text-grey-medium">tasks</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Peak / Low Week</span>
+      <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
+        {{ velocity?.highestWeekCount || 0 }} <span class="text-sm font-normal text-grey-medium">max / {{ velocity?.lowestWeekCount || 0 }} min</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Velocity Consistency Chart -->
+  @if (velocity && velocity.weeks.length > 0) {
+    <div class="rounded-xl border border-lines-light p-2 dark:border-lines-dark">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-1.2">
+        <h4 class="text-sm font-bold uppercase tracking-wider text-grey-medium">
+          Velocity Consistency Bar Chart
+        </h4>
+        <div class="flex items-center gap-1.6 text-sm text-grey-medium">
+          <span class="flex items-center gap-0.4">
+            <span class="h-0.5 w-3 border-b-2 border-dashed border-purple"></span> Avg Benchmark ({{ velocity.averageVelocity }})
+          </span>
+        </div>
+      </div>
+
+      <div class="relative w-full overflow-x-auto">
+        <svg viewBox="0 0 600 240" class="h-60 w-full">
+          <!-- Horizontal Grid Lines -->
+          @for (tick of [0, 0.25, 0.5, 0.75, 1]; track tick) {
+            <line
+              x1="45"
+              [attr.y1]="20 + (1 - tick) * 160"
+              x2="570"
+              [attr.y2]="20 + (1 - tick) * 160"
+              [attr.stroke]="darkMode ? '#3e3f4e' : '#eaebfa'"
+              stroke-width="1"
+              stroke-dasharray="2 2"
+            />
+            <text
+              x="35"
+              [attr.y]="25 + (1 - tick) * 160"
+              text-anchor="end"
+              class="fill-grey-medium text-[10px]"
+            >
+              {{ Math.round(tick * (Math.max(velocity.highestWeekCount, 5))) }}
+            </text>
+          }
+
+          <!-- Average Velocity Guide Line -->
+          <line
+            x1="45"
+            [attr.y1]="getAverageY(velocity.averageVelocity, Math.max(velocity.highestWeekCount, 5))"
+            x2="570"
+            [attr.y2]="getAverageY(velocity.averageVelocity, Math.max(velocity.highestWeekCount, 5))"
+            stroke="#635fc7"
+            stroke-width="2"
+            stroke-dasharray="4 4"
+          />
+
+          <!-- Week Bars -->
+          @for (week of velocity.weeks; track week.weekNumber; let i = $index) {
+            <!-- Bar Group -->
+            <g
+              class="cursor-pointer transition-opacity duration-150 hover:opacity-85"
+              (mouseenter)="onWeekHover(week)"
+              (mouseleave)="onWeekHover(null)"
+            >
+              <!-- Bar Background Highlight for hovered -->
+              @if (hoveredWeek?.weekNumber === week.weekNumber) {
+                <rect
+                  [attr.x]="65 + i * 85 - 8"
+                  y="15"
+                  width="60"
+                  height="170"
+                  rx="6"
+                  class="fill-purple/10 dark:fill-white/5"
+                />
+              }
+
+              <!-- Color Coded Bar -->
+              <rect
+                [attr.x]="65 + i * 85"
+                [attr.y]="20 + 160 - getBarHeight(week.completedCount, Math.max(velocity.highestWeekCount, 5))"
+                width="44"
+                [attr.height]="getBarHeight(week.completedCount, Math.max(velocity.highestWeekCount, 5))"
+                rx="6"
+                [attr.fill]="week.tierColor"
+              />
+
+              <!-- Task Count on top of bar -->
+              <text
+                [attr.x]="65 + i * 85 + 22"
+                [attr.y]="15 + 160 - getBarHeight(week.completedCount, Math.max(velocity.highestWeekCount, 5))"
+                text-anchor="middle"
+                class="text-[11px] font-bold"
+                [attr.fill]="week.tierColor"
+              >
+                {{ week.completedCount }}
+              </text>
+
+              <!-- Week Label on X axis -->
+              <text
+                [attr.x]="65 + i * 85 + 22"
+                y="205"
+                text-anchor="middle"
+                class="fill-grey-medium text-[10px] font-medium"
+              >
+                {{ week.label }}
+              </text>
+              <text
+                [attr.x]="65 + i * 85 + 22"
+                y="222"
+                text-anchor="middle"
+                class="fill-grey-medium/75 text-[8px]"
+              >
+                {{ week.dateRange.split('-')[0] }}
+              </text>
+            </g>
+          }
+        </svg>
+
+        <!-- Hover Tooltip -->
+        @if (hoveredWeek) {
+          <div
+            class="pointer-events-none absolute right-4 top-2 z-10 min-w-[20rem] rounded-lg bg-black/90 p-1.6 text-white shadow-xl backdrop-blur-sm dark:bg-white/95 dark:text-black"
+          >
+            <div class="flex items-center justify-between border-b border-white/20 pb-0.8 dark:border-black/20">
+              <span class="text-sm font-bold">{{ hoveredWeek.label }}</span>
+              <span
+                class="rounded px-0.8 py-0.2 text-[10px] font-bold"
+                [ngStyle]="{ 'background-color': hoveredWeek.tierColor + '30', color: hoveredWeek.tierColor }"
+              >
+                {{ hoveredWeek.tierLabel }}
+              </span>
+            </div>
+            <div class="mt-0.8 flex flex-col gap-0.4 text-xs">
+              <div class="flex justify-between">
+                <span>Date Span:</span>
+                <span class="font-semibold">{{ hoveredWeek.dateRange }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Completed Tasks:</span>
+                <span class="font-bold text-[#67e2ae]">{{ hoveredWeek.completedCount }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Variance from Avg:</span>
+                <span [ngClass]="hoveredWeek.diffFromAverage >= 0 ? 'text-[#67e2ae]' : 'text-red'">
+                  {{ hoveredWeek.diffFromAverage >= 0 ? '+' : '' }}{{ hoveredWeek.diffFromAverage }} ({{ hoveredWeek.percentFromAverage }}%)
+                </span>
+              </div>
+              @if (hoveredWeek.wowChange !== null) {
+                <div class="flex justify-between">
+                  <span>Week-over-Week:</span>
+                  <span [ngClass]="hoveredWeek.wowChange >= 0 ? 'text-[#67e2ae]' : 'text-red'">
+                    {{ hoveredWeek.wowChange >= 0 ? '+' : '' }}{{ hoveredWeek.wowChange }} tasks
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- COLOR CODING INFORMATION LEGEND -->
+    <div class="rounded-xl bg-grey-light p-2 dark:bg-grey-vdark">
+      <h4 class="mb-1 text-sm font-bold uppercase tracking-wider text-grey-medium">
+        Color Coding Information & Performance Thresholds
+      </h4>
+      <div class="grid grid-cols-1 gap-1.6 sm:grid-cols-3">
+        <div class="flex items-start gap-1 rounded-lg border border-lines-light bg-white p-1.2 dark:border-lines-dark dark:bg-grey-dark">
+          <span class="mt-0.4 h-3 w-3 shrink-0 rounded-full bg-[#67e2ae]"></span>
+          <div>
+            <div class="text-sm font-bold text-black dark:text-white">Above Target (>115%)</div>
+            <div class="text-xs text-grey-medium">High velocity week exceeding target consistency benchmark</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-1 rounded-lg border border-lines-light bg-white p-1.2 dark:border-lines-dark dark:bg-grey-dark">
+          <span class="mt-0.4 h-3 w-3 shrink-0 rounded-full bg-purple"></span>
+          <div>
+            <div class="text-sm font-bold text-black dark:text-white">Consistent / Target (85% - 115%)</div>
+            <div class="text-xs text-grey-medium">Expected sprint throughput aligned with team velocity</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-1 rounded-lg border border-lines-light bg-white p-1.2 dark:border-lines-dark dark:bg-grey-dark">
+          <span class="mt-0.4 h-3 w-3 shrink-0 rounded-full bg-red"></span>
+          <div>
+            <div class="text-sm font-bold text-black dark:text-white">Below Target (&lt;85%)</div>
+            <div class="text-xs text-grey-medium">Velocity dip due to blockers, complexity, or holidays</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Type Legend -->
+      <div class="mt-1.6 flex flex-wrap items-center gap-1.6 border-t border-lines-light pt-1.2 dark:border-lines-dark">
+        <span class="text-xs font-bold uppercase text-grey-medium">Task Types:</span>
+        @for (type of taskTypes; track type) {
+          <span class="flex items-center gap-0.6 text-xs font-semibold text-black dark:text-white">
+            <span class="h-2.5 w-2.5 rounded-full" [ngStyle]="{ 'background-color': taskTypeColors[type] }"></span>
+            {{ type }}
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Week-by-Week Consistency Table -->
+    <div class="overflow-x-auto rounded-xl border border-lines-light dark:border-lines-dark">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-grey-light text-grey-medium dark:bg-grey-vdark">
+          <tr>
+            <th class="px-2 py-1.2 font-semibold">Week</th>
+            <th class="px-2 py-1.2 font-semibold">Date Range</th>
+            <th class="px-2 py-1.2 font-semibold">Tasks Completed</th>
+            <th class="px-2 py-1.2 font-semibold">Performance Tier</th>
+            <th class="px-2 py-1.2 font-semibold">Variance from Avg</th>
+            <th class="px-2 py-1.2 font-semibold">WoW Change</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-lines-light dark:divide-lines-dark">
+          @for (week of velocity.weeks; track week.weekNumber) {
+            <tr class="hover:bg-grey-light/50 dark:hover:bg-grey-vdark/50">
+              <td class="px-2 py-1.2 font-bold text-black dark:text-white">{{ week.label }}</td>
+              <td class="px-2 py-1.2 text-grey-medium">{{ week.dateRange }}</td>
+              <td class="px-2 py-1.2">
+                <span class="font-bold" [ngStyle]="{ color: week.tierColor }">{{ week.completedCount }}</span>
+              </td>
+              <td class="px-2 py-1.2">
+                <span
+                  class="rounded-full px-1 py-0.2 text-xs font-bold"
+                  [ngStyle]="{ 'background-color': week.tierColor + '20', color: week.tierColor }"
+                >
+                  {{ week.tierLabel }}
+                </span>
+              </td>
+              <td class="px-2 py-1.2 font-semibold" [ngClass]="week.diffFromAverage >= 0 ? 'text-[#67e2ae]' : 'text-red'">
+                {{ week.diffFromAverage >= 0 ? '+' : '' }}{{ week.diffFromAverage }} ({{ week.percentFromAverage }}%)
+              </td>
+              <td class="px-2 py-1.2 font-medium">
+                @if (week.wowChange !== null) {
+                  <span [ngClass]="week.wowChange > 0 ? 'text-[#67e2ae]' : week.wowChange < 0 ? 'text-red' : 'text-grey-medium'">
+                    {{ week.wowChange > 0 ? '+' : '' }}{{ week.wowChange }}
+                  </span>
+                } @else {
+                  <span class="text-grey-medium">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

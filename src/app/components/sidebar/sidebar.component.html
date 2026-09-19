@@ -18,18 +18,43 @@
     />
   </figure>
   <div
-    class="mb-auto flex flex-col sm:w-96 lg:w-[27.6rem]"
+    class="mb-auto flex min-h-0 flex-col sm:w-96 lg:w-[27.6rem]"
     [ngClass]="{ hidden: !opened }"
   >
+    <!-- Project Overview Navigation Link -->
+    <div class="mb-3 shrink-0">
+      @if (isOverview) {
+        <button
+          class="flex h-4.8 w-full items-center rounded-r-full bg-purple text-white sm:pl-2.4 lg:pl-3.2"
+        >
+          <svg class="mr-1.2 h-1.6 w-1.6 fill-current lg:mr-1.6" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+          </svg>
+          <span class="text-md font-bold leading-md">Project Overview</span>
+        </button>
+      } @else {
+        <button
+          (click)="selectOverview()"
+          class="marker flex h-4.8 w-full items-center rounded-r-full text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white sm:pl-2.4 lg:pl-3.2"
+        >
+          <svg class="mr-1.2 h-1.6 w-1.6 fill-current lg:mr-1.6" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+          </svg>
+          <span class="text-md font-bold leading-md">Project Overview</span>
+        </button>
+      }
+    </div>
+
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <h2
       class="mb-8 text-sm font-bold uppercase leading-sm tracking-sm text-grey-medium sm:pl-2.4 lg:pl-3.2"
     >
       All boards ({{ boards.length }})
     </h2>
     @for (board of boards; track board.name; let i = $index) {
-        @if (board.name === activeBoard?.name) {
+        @if (!isOverview && board.name === activeBoard?.name) {
           <button
-            class="flex h-4.8 items-center rounded-r-full bg-purple text-white sm:pl-2.4 lg:pl-3.2"
+            class="flex h-4.8 items-center rounded-r-full bg-purple h-[10px] text-white sm:pl-2.4 lg:pl-3.2"
           >
             <img
               src="assets/images/icon-board-active.svg"
@@ -70,6 +95,7 @@
         >+ Create New Board</span
       >
     </button>
+    </div>
   </div>
   <div class="mb-3 sm:pl-5 lg:pl-2.4" [ngClass]="{ hidden: !opened }">
     <app-theme-toggler

@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { BoardModalComponent } from './board-modal.component';
 import { Board } from '../../../models/board.model';
+import { Task } from '../../../models/task.model';
 
 describe('BoardModalComponent', () => {
   let component: BoardModalComponent;
@@ -66,7 +67,7 @@ describe('BoardModalComponent', () => {
   });
 
   it('submit preserves existing task lists when editing a board', () => {
-    const existingTask = { id: 'TASK-1', type: 'Feature', title: 'X', description: '', status: 'Todo', startDate: '', endDate: '', subtasks: [] } as any;
+    const existingTask = { id: 'TASK-1', type: 'Feature', title: 'X', description: '', status: 'Todo', startDate: '', endDate: '', subtasks: [] } as Task;
     configure({ name: 'Roadmap', columns: [{ name: 'Backlog', tasks: [existingTask] }] });
 
     component.submit();

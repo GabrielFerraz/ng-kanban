@@ -1,0 +1,314 @@
+<div class="burndown-widget flex flex-col gap-2.4">
+  <!-- Header with Summary & Mode Switcher -->
+  <div class="flex flex-wrap items-center justify-between gap-1.6 border-b border-lines-light pb-2 dark:border-lines-dark">
+    <div>
+      <h3 class="text-md font-bold leading-md text-black dark:text-white">
+        Combined Burndown & Burnup
+      </h3>
+      <p class="text-sm font-medium text-grey-medium">
+        Aggregated progress across all project boards combined
+      </p>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="flex items-center rounded-lg bg-grey-light p-0.4 dark:bg-grey-vdark">
+      <button
+        type="button"
+        (click)="setViewMode('burndown')"
+        [ngClass]="{
+          'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': viewMode === 'burndown',
+          'text-grey-medium hover:text-black dark:hover:text-white': viewMode !== 'burndown'
+        }"
+        class="rounded-md px-1.2 py-0.6 text-sm font-bold duration-200"
+      >
+        Burndown
+      </button>
+      <button
+        type="button"
+        (click)="setViewMode('burnup')"
+        [ngClass]="{
+          'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': viewMode === 'burnup',
+          'text-grey-medium hover:text-black dark:hover:text-white': viewMode !== 'burnup'
+        }"
+        class="rounded-md px-1.2 py-0.6 text-sm font-bold duration-200"
+      >
+        Burnup
+      </button>
+      <button
+        type="button"
+        (click)="setViewMode('both')"
+        [ngClass]="{
+          'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': viewMode === 'both',
+          'text-grey-medium hover:text-black dark:hover:text-white': viewMode !== 'both'
+        }"
+        class="rounded-md px-1.2 py-0.6 text-sm font-bold duration-200"
+      >
+        Side-by-Side
+      </button>
+    </div>
+  </div>
+
+  <!-- Key Metrics Strip -->
+  <div class="grid grid-cols-2 gap-1.2 sm:grid-cols-4">
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Total Scope</span>
+      <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
+        {{ analytics?.totalTasks || 0 }} <span class="text-sm font-normal text-grey-medium">tasks</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Completed</span>
+      <div class="mt-0.4 text-lg font-bold text-[#67e2ae]">
+        {{ analytics?.completedTasks || 0 }} <span class="text-sm font-normal text-grey-medium">({{ analytics?.completionPercentage || 0 }}%)</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Remaining</span>
+      <div class="mt-0.4 text-lg font-bold text-purple">
+        {{ analytics?.remainingTasks || 0 }} <span class="text-sm font-normal text-grey-medium">tasks</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Pace Status</span>
+      <div class="mt-0.4">
+        <span
+          class="inline-block rounded-full px-1.2 py-0.4 text-sm font-bold"
+          [ngStyle]="{ color: getPaceStatus().color, 'background-color': getPaceStatus().bg }"
+        >
+          {{ getPaceStatus().text }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  @if (analytics && analytics.points.length > 0) {
+    <!-- Chart Container -->
+    <div class="grid gap-2.4" [ngClass]="{ 'grid-cols-1 lg:grid-cols-2': viewMode === 'both', 'grid-cols-1': viewMode !== 'both' }">
+      <!-- BURNDOWN CHART -->
+      @if (viewMode === 'burndown' || viewMode === 'both') {
+        <div class="flex flex-col gap-1.2 rounded-xl border border-lines-light p-2 dark:border-lines-dark">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-wider text-grey-medium">
+              Burndown (Remaining Tasks)
+            </h4>
+            <div class="flex items-center gap-1.6 text-sm">
+              <span class="flex items-center gap-0.4 font-medium text-grey-medium">
+                <span class="h-0.5 w-3 border-b-2 border-dashed border-grey-medium"></span> Ideal
+              </span>
+              <span class="flex items-center gap-0.4 font-medium text-purple">
+                <span class="h-2 w-2 rounded-full bg-purple"></span> Actual Remaining
+              </span>
+            </div>
+          </div>
+
+          <div class="relative w-full overflow-x-auto">
+            <svg viewBox="0 0 600 240" class="h-64 w-full">
+              <defs>
+                <linearGradient id="burndownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#635fc7" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#635fc7" stop-opacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              <!-- Horizontal Grid Lines -->
+              @for (tick of [0, 0.25, 0.5, 0.75, 1]; track tick) {
+                <line
+                  x1="45"
+                  [attr.y1]="20 + (1 - tick) * 180"
+                  x2="570"
+                  [attr.y2]="20 + (1 - tick) * 180"
+                  [attr.stroke]="darkMode ? '#3e3f4e' : '#eaebfa'"
+                  stroke-width="1"
+                  stroke-dasharray="2 2"
+                />
+                <text
+                  x="35"
+                  [attr.y]="25 + (1 - tick) * 180"
+                  text-anchor="end"
+                  class="fill-grey-medium text-[10px]"
+                >
+                  {{ Math.round(tick * (analytics.totalTasks || 1)) }}
+                </text>
+              }
+
+              <!-- Area Fill -->
+              <path
+                [attr.d]="buildBurndownAreaPath(analytics.points, analytics.totalTasks)"
+                fill="url(#burndownGrad)"
+              />
+
+              <!-- Ideal Line (Dashed) -->
+              <path
+                [attr.d]="buildBurndownPath(analytics.points, 'burndownIdeal', analytics.totalTasks)"
+                fill="none"
+                stroke="#828fa3"
+                stroke-width="2"
+                stroke-dasharray="4 4"
+              />
+
+              <!-- Actual Line (Solid Purple) -->
+              <path
+                [attr.d]="buildBurndownPath(analytics.points, 'burndownActual', analytics.totalTasks)"
+                fill="none"
+                stroke="#635fc7"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+              <!-- Data Points & X-Axis Labels -->
+              @for (point of analytics.points; track point.date; let i = $index) {
+                <!-- Data Point Circle -->
+                <circle
+                  [attr.cx]="getXCoord(i, analytics.points.length)"
+                  [attr.cy]="getYCoord(point.burndownActual, analytics.totalTasks)"
+                  r="5"
+                  class="cursor-pointer fill-white stroke-purple transition-all duration-150 hover:r-7 dark:fill-grey-dark"
+                  stroke-width="3"
+                  (mouseenter)="onPointHover(point, 'burndown')"
+                  (mouseleave)="onPointHover(null, null)"
+                />
+
+                <!-- X Axis Date Label -->
+                <text
+                  [attr.x]="getXCoord(i, analytics.points.length)"
+                  y="225"
+                  text-anchor="middle"
+                  class="fill-grey-medium text-[10px] font-medium"
+                >
+                  {{ point.label }}
+                </text>
+              }
+            </svg>
+
+            <!-- Interactive Hover Tooltip -->
+            @if (hoveredPoint && hoveredChart === 'burndown') {
+              <div
+                class="pointer-events-none absolute right-4 top-2 rounded-lg bg-black/90 p-1.2 text-white shadow-lg backdrop-blur-sm dark:bg-white/95 dark:text-black"
+              >
+                <div class="text-sm font-bold">{{ hoveredPoint.label }} ({{ hoveredPoint.date }})</div>
+                <div class="text-sm text-purple">Remaining: {{ hoveredPoint.burndownActual }} tasks</div>
+                <div class="text-sm text-grey-medium">Ideal: {{ hoveredPoint.burndownIdeal }} tasks</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- BURNUP CHART -->
+      @if (viewMode === 'burnup' || viewMode === 'both') {
+        <div class="flex flex-col gap-1.2 rounded-xl border border-lines-light p-2 dark:border-lines-dark">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-wider text-grey-medium">
+              Burnup (Scope & Completion)
+            </h4>
+            <div class="flex items-center gap-1.6 text-sm">
+              <span class="flex items-center gap-0.4 font-medium text-grey-medium">
+                <span class="h-0.5 w-3 border-b-2 border-grey-medium"></span> Scope
+              </span>
+              <span class="flex items-center gap-0.4 font-medium text-[#67e2ae]">
+                <span class="h-2 w-2 rounded-full bg-[#67e2ae]"></span> Completed
+              </span>
+            </div>
+          </div>
+
+          <div class="relative w-full overflow-x-auto">
+            <svg viewBox="0 0 600 240" class="h-64 w-full">
+              <defs>
+                <linearGradient id="burnupGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#67e2ae" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#67e2ae" stop-opacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              <!-- Horizontal Grid Lines -->
+              @for (tick of [0, 0.25, 0.5, 0.75, 1]; track tick) {
+                <line
+                  x1="45"
+                  [attr.y1]="20 + (1 - tick) * 180"
+                  x2="570"
+                  [attr.y2]="20 + (1 - tick) * 180"
+                  [attr.stroke]="darkMode ? '#3e3f4e' : '#eaebfa'"
+                  stroke-width="1"
+                  stroke-dasharray="2 2"
+                />
+                <text
+                  x="35"
+                  [attr.y]="25 + (1 - tick) * 180"
+                  text-anchor="end"
+                  class="fill-grey-medium text-[10px]"
+                >
+                  {{ Math.round(tick * (analytics.totalTasks || 1)) }}
+                </text>
+              }
+
+              <!-- Area Fill -->
+              <path
+                [attr.d]="buildBurnupAreaPath(analytics.points, analytics.totalTasks)"
+                fill="url(#burnupGrad)"
+              />
+
+              <!-- Scope Line (Solid Slate) -->
+              <path
+                [attr.d]="buildBurnupPath(analytics.points, 'burnupScope', analytics.totalTasks)"
+                fill="none"
+                stroke="#828fa3"
+                stroke-width="2"
+                stroke-dasharray="3 3"
+              />
+
+              <!-- Completed Tasks Line (Solid Emerald) -->
+              <path
+                [attr.d]="buildBurnupPath(analytics.points, 'burnupCompleted', analytics.totalTasks)"
+                fill="none"
+                stroke="#67e2ae"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+              <!-- Data Points & X-Axis Labels -->
+              @for (point of analytics.points; track point.date; let i = $index) {
+                <!-- Data Point Circle -->
+                <circle
+                  [attr.cx]="getXCoord(i, analytics.points.length)"
+                  [attr.cy]="getYCoord(point.burnupCompleted, analytics.totalTasks)"
+                  r="5"
+                  class="cursor-pointer fill-white stroke-[#67e2ae] transition-all duration-150 hover:r-7 dark:fill-grey-dark"
+                  stroke-width="3"
+                  (mouseenter)="onPointHover(point, 'burnup')"
+                  (mouseleave)="onPointHover(null, null)"
+                />
+
+                <!-- X Axis Date Label -->
+                <text
+                  [attr.x]="getXCoord(i, analytics.points.length)"
+                  y="225"
+                  text-anchor="middle"
+                  class="fill-grey-medium text-[10px] font-medium"
+                >
+                  {{ point.label }}
+                </text>
+              }
+            </svg>
+
+            <!-- Interactive Hover Tooltip -->
+            @if (hoveredPoint && hoveredChart === 'burnup') {
+              <div
+                class="pointer-events-none absolute right-4 top-2 rounded-lg bg-black/90 p-1.2 text-white shadow-lg backdrop-blur-sm dark:bg-white/95 dark:text-black"
+              >
+                <div class="text-sm font-bold">{{ hoveredPoint.label }} ({{ hoveredPoint.date }})</div>
+                <div class="text-sm text-[#67e2ae]">Completed: {{ hoveredPoint.burnupCompleted }} tasks</div>
+                <div class="text-sm text-grey-medium">Total Scope: {{ hoveredPoint.burnupScope }} tasks</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="flex h-32 items-center justify-center rounded-lg bg-grey-light dark:bg-grey-vdark">
+      <p class="text-sm font-medium text-grey-medium">No tasks found across boards.</p>
+    </div>
+  }
+</div>

@@ -47,6 +47,20 @@
       {{ data.task.endDate | date: 'mediumDate' }}
     </span>
   </div>
+  @if (data.task.assignee || data.task.timeToComplete) {
+    <div class="flex flex-wrap items-center gap-1.6 text-sm font-semibold">
+      @if (data.task.assignee) {
+        <span class="rounded-full bg-purple-low px-1.2 py-0.4 text-purple dark:bg-purple-low/50">
+          👤 {{ data.task.assignee }}
+        </span>
+      }
+      @if (data.task.timeToComplete) {
+        <span class="rounded-full bg-grey-light px-1.2 py-0.4 text-grey-medium dark:bg-grey-vdark">
+          ⏱ {{ data.task.timeToComplete }} hrs
+        </span>
+      }
+    </div>
+  }
   @if (data.task.description) {
     <p class="text-ms font-medium leading-ms text-grey-medium">
       {{ data.task.description }}

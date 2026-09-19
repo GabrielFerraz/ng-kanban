@@ -10,7 +10,7 @@ import {
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
-import { TASK_TYPES, Task, TaskType } from '../../../models/task.model';
+import { DEFAULT_ASSIGNEES, TASK_TYPES, Task, TaskType } from '../../../models/task.model';
 import { SubTask } from '../../../models/subTask.model';
 import { addDays, toIsoDate } from '../../../utils/date.util';
 import { buildTaskMap, getDescendantIds } from '../../../utils/dependency.util';
@@ -39,6 +39,7 @@ export class TaskModalComponent implements OnInit {
   form!: FormGroup;
   opened = false;
   taskTypes = TASK_TYPES;
+  availableAssignees = DEFAULT_ASSIGNEES;
   availableDependencies: Task[] = [];
 
   ngOnInit(): void {
@@ -92,6 +93,8 @@ export class TaskModalComponent implements OnInit {
         }),
       ]),
       dependencies: this.fb.control<string[]>(this.data.task?.dependencies ?? []),
+      assignee: this.fb.control(this.data.task?.assignee || DEFAULT_ASSIGNEES[0]),
+      timeToComplete: this.fb.control(this.data.task?.timeToComplete ?? 12, { validators: [Validators.min(1)] }),
     });
 
     this.form.addValidators(dateRangeValidator('startDate', 'endDate'));

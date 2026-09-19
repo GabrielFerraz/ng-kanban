@@ -6,6 +6,8 @@
     [boards]="boards()"
     [activeBoard]="activeBoard()"
     [opened]="isSidebarOpen"
+    [isOverview]="isOverview"
+    (overviewSelected)="selectOverview()"
     (selected)="selectBoard($event)"
     (enableDarkMode)="toggleDarkMode($event)"
     (closeSidebar)="closeSidebar()"
@@ -23,6 +25,8 @@
       [activeBoard]="activeBoard()"
       [boards]="boards()"
       [darkMode]="darkMode"
+      [isOverview]="isOverview"
+      (overviewSelect)="selectOverview()"
       (boardSelect)="selectBoard($event)"
       (boardAdd)="addBoard()"
       (boardEdit)="editBoard()"
@@ -30,14 +34,23 @@
       (taskAdd)="addTask()"
     ></app-navbar>
 
-    <app-project-board
-      [darkMode]="darkMode"
-      [activeBoard]="activeBoard()"
-      (columnAdd)="editBoard()"
-      (boardEdit)="updateBoardAfterTaskReorder($event)"
-      (taskUpdate)="updateTask($event)"
-      (taskDeleteModal)="deleteTask($event)"
-      (taskUpdateModal)="editTask($event)"
-    ></app-project-board>
+    @if (isOverview) {
+      <div class="mt-24 sm:mt-32 lg:mt-36">
+        <app-project-overview
+          [boards]="boards()"
+          [darkMode]="darkMode"
+        ></app-project-overview>
+      </div>
+    } @else {
+      <app-project-board
+        [darkMode]="darkMode"
+        [activeBoard]="activeBoard()"
+        (columnAdd)="editBoard()"
+        (boardEdit)="updateBoardAfterTaskReorder($event)"
+        (taskUpdate)="updateTask($event)"
+        (taskDeleteModal)="deleteTask($event)"
+        (taskUpdateModal)="editTask($event)"
+      ></app-project-board>
+    }
   </main>
 </div>

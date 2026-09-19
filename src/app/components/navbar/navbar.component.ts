@@ -1,5 +1,11 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+} from '@angular/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { Board } from '../../models/board.model';
 
@@ -16,16 +22,25 @@ export class NavbarComponent {
   @Input() activeBoard!: Board | null;
   @Input() boards!: Board[];
   @Input() darkMode!: boolean;
+  @Input() isOverview = false;
+
   @Output() boardSelect = new EventEmitter<number>();
   @Output() boardAdd = new EventEmitter<void>();
   @Output() boardEdit = new EventEmitter<void>();
   @Output() boardDelete = new EventEmitter<void>();
   @Output() taskAdd = new EventEmitter<void>();
+  @Output() overviewSelect = new EventEmitter<void>();
 
   sidebarShown = false;
 
   selectBoard(boardIdx: number): void {
+    this.sidebarShown = false;
     this.boardSelect.emit(boardIdx);
+  }
+
+  selectOverview(): void {
+    this.sidebarShown = false;
+    this.overviewSelect.emit();
   }
 
   addBoard(): void {

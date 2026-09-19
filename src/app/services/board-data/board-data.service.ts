@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { Board } from '../../models/board.model';
-import { Task, TaskType } from '../../models/task.model';
+import { DEFAULT_ASSIGNEES, Task, TaskType } from '../../models/task.model';
 import { addDays, toIsoDate } from '../../utils/date.util';
 import { BoardHttpService } from '../board-http/board-http.service';
 
@@ -34,7 +34,6 @@ export class BoardDataService {
       localStorage.setItem('boards', JSON.stringify(this.boards()));
     }
   });
-
 
   getBoards(): void {
     let userBoards!: Board[] | null;
@@ -62,13 +61,18 @@ export class BoardDataService {
         ...column,
         tasks: column.tasks.map((task) => {
           const startDate = task.startDate || toIsoDate(new Date());
+          const id = task.id || `${TASK_ID_PREFIX}${nextId++}`;
+          const idNum = parseInt(id.replace(TASK_ID_PREFIX, ''), 10) || 0;
+          const defaultAssignee = DEFAULT_ASSIGNEES[idNum % DEFAULT_ASSIGNEES.length];
           return {
             ...task,
-            id: task.id || `${TASK_ID_PREFIX}${nextId++}`,
+            id,
             type: task.type || TaskType.Feature,
             startDate,
             endDate: task.endDate || toIsoDate(addDays(new Date(), 2)),
             dependencies: task.dependencies ?? [],
+            assignee: task.assignee || defaultAssignee,
+            timeToComplete: task.timeToComplete ?? 12,
           };
         }),
       })),
@@ -117,10 +121,13 @@ export class BoardDataService {
   }
 
   addTask(task: Task) {
+    const nextNum = this.nextIdNumber(this.boards());
     const newTask: Task = {
       ...task,
       id: task.id || this.createTaskId(),
       dependencies: task.dependencies ?? [],
+      assignee: task.assignee || DEFAULT_ASSIGNEES[nextNum % DEFAULT_ASSIGNEES.length],
+      timeToComplete: task.timeToComplete ?? 12,
     };
     this.boards.update((boards) =>
       boards.map((board) =>

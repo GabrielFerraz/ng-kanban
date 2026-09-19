@@ -1,0 +1,246 @@
+<div class="utilization-widget flex flex-col gap-2.4">
+  <!-- Header with Summary & Average Capacity Metric -->
+  <div class="flex flex-wrap items-center justify-between gap-1.6 border-b border-lines-light pb-2 dark:border-lines-dark">
+    <div>
+      <h3 class="text-md font-bold leading-md text-black dark:text-white">
+        Team Utilization Heatmap & Weekly Capacity
+      </h3>
+      <p class="text-sm font-medium text-grey-medium">
+        Work hours per task and calculated percentage of weekly capacity filled in {{ utilization?.currentWeekLabel }}
+      </p>
+    </div>
+
+    <!-- Prominent Team Average Capacity Badge -->
+    @if (utilization) {
+      <div class="flex items-center gap-1 rounded-xl bg-purple-low px-2 py-1 dark:bg-purple-low/50">
+        <span class="text-sm font-semibold text-grey-medium">Team Average Capacity:</span>
+        <span class="text-lg font-bold text-purple">
+          {{ utilization.teamAverageCapacityFilledPercentage }}%
+        </span>
+        <span class="text-xs font-semibold text-grey-medium">filled this week</span>
+      </div>
+    }
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="grid grid-cols-2 gap-1.2 sm:grid-cols-4">
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Team Average Capacity</span>
+      <div class="mt-0.4 text-lg font-bold text-purple">
+        {{ utilization?.teamAverageCapacityFilledPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">avg</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Total Team Workload</span>
+      <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
+        {{ utilization?.totalTeamCurrentWeekHours || 0 }} <span class="text-sm font-normal text-grey-medium">hours logged</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Optimal Load (70-100%)</span>
+      <div class="mt-0.4 text-lg font-bold text-[#67e2ae]">
+        {{ utilization?.optimalCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Over Capacity (>100%)</span>
+      <div class="mt-0.4 text-lg font-bold" [ngClass]="(utilization?.overCapacityCount || 0) > 0 ? 'text-red' : 'text-grey-medium'">
+        {{ utilization?.overCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Utilization Heatmap Table -->
+  @if (utilization && utilization.persons.length > 0) {
+    <div class="overflow-x-auto rounded-xl border border-lines-light dark:border-lines-dark">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-grey-light text-grey-medium dark:bg-grey-vdark">
+          <tr>
+            <th class="px-2 py-1.6 font-semibold sm:w-64">Team Member</th>
+            <!-- Mon - Fri Heatmap Column Headers -->
+            @for (day of utilization.persons[0].days; track day.dateStr) {
+              <th class="px-1.6 py-1.6 text-center font-semibold">
+                <div>{{ day.dayName }}</div>
+                <div class="text-[10px] font-normal text-grey-medium">{{ day.dayLabel }}</div>
+              </th>
+            }
+            <th class="px-2 py-1.6 text-center font-semibold">Weekly Total</th>
+            <th class="px-2 py-1.6 font-semibold sm:w-56">Current Week Capacity Filled</th>
+            <th class="px-2 py-1.6 text-center font-semibold">Tasks</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-lines-light dark:divide-lines-dark">
+          @for (person of utilization.persons; track person.name) {
+            <!-- Main Person Row -->
+            <tr class="hover:bg-grey-light/40 dark:hover:bg-grey-vdark/40">
+              <!-- Member Info -->
+              <td class="px-2 py-1.6">
+                <div class="flex items-center gap-1.2">
+                  <div
+                    class="flex h-3.6 w-3.6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+                    [ngStyle]="{ 'background-color': person.avatarColor }"
+                  >
+                    {{ person.initials }}
+                  </div>
+                  <div>
+                    <div class="font-bold text-black dark:text-white">{{ person.name }}</div>
+                    <div class="text-xs text-grey-medium">Avg: {{ person.averageDailyHours }}h/day</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Heatmap Days (Mon - Fri) -->
+              @for (day of person.days; track day.dateStr) {
+                <td class="p-1 text-center">
+                  <div
+                    class="mx-auto flex h-10 w-14 cursor-pointer items-center justify-center rounded-lg text-xs font-bold transition-transform hover:scale-105"
+                    [ngStyle]="{
+                      'background-color': getCellBg(day.hours),
+                      'color': getCellTextColor(day.hours)
+                    }"
+                    (mouseenter)="setHoveredCell(person, day)"
+                    (mouseleave)="setHoveredCell(null, null)"
+                  >
+                    {{ day.hours > 0 ? day.hours + 'h' : '—' }}
+                  </div>
+                </td>
+              }
+
+              <!-- Weekly Total -->
+              <td class="px-2 py-1.6 text-center">
+                <span class="font-bold text-black dark:text-white">{{ person.currentWeekHours }}h</span>
+                <span class="text-xs text-grey-medium"> / 40h</span>
+              </td>
+
+              <!-- Capacity Filled % & Meter -->
+              <td class="px-2 py-1.6">
+                <div class="flex flex-col gap-0.6">
+                  <div class="flex items-center justify-between">
+                    <span
+                      class="text-xs font-bold"
+                      [ngClass]="{
+                        'text-[#10b981]': person.status === 'optimal',
+                        'text-red': person.status === 'over',
+                        'text-purple': person.status === 'under'
+                      }"
+                    >
+                      {{ person.capacityFilledPercentage }}% Capacity
+                    </span>
+                    <span
+                      class="rounded px-0.8 py-0.2 text-[10px] font-semibold"
+                      [ngClass]="{
+                        'bg-[#67e2ae]/20 text-[#10b981]': person.status === 'optimal',
+                        'bg-red/20 text-red': person.status === 'over',
+                        'bg-purple/20 text-purple': person.status === 'under'
+                      }"
+                    >
+                      {{ person.status === 'optimal' ? 'Optimal' : person.status === 'over' ? 'Overloaded' : 'Light' }}
+                    </span>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div class="h-2 w-full overflow-hidden rounded-full bg-grey-light dark:bg-grey-vdark">
+                    <div
+                      class="h-full rounded-full transition-all duration-300"
+                      [ngStyle]="{
+                        'width': Math.min(100, person.capacityFilledPercentage) + '%',
+                        'background-color': person.status === 'over' ? '#ea5555' : person.status === 'optimal' ? '#67e2ae' : '#635fc7'
+                      }"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Expand / Collapse Task Details Button -->
+              <td class="px-2 py-1.6 text-center">
+                <button
+                  type="button"
+                  (click)="togglePersonExpand(person.name)"
+                  class="rounded-lg border border-lines-light px-1.2 py-0.6 text-xs font-bold text-purple hover:bg-purple-low dark:border-lines-dark"
+                >
+                  {{ expandedPersonName === person.name ? 'Hide Tasks' : person.assignedTasks.length + ' Tasks' }}
+                </button>
+              </td>
+            </tr>
+
+            <!-- Expandable Row: Task Breakdown showing how much time each task takes -->
+            @if (expandedPersonName === person.name) {
+              <tr class="bg-grey-light/30 dark:bg-grey-vdark/30">
+                <td colspan="9" class="p-2">
+                  <div class="rounded-xl border border-lines-light bg-white p-2 dark:border-lines-dark dark:bg-grey-dark">
+                    <h5 class="mb-1 text-xs font-bold uppercase tracking-wider text-grey-medium">
+                      Tasks Assigned to {{ person.name }} (Time to Complete Breakdown):
+                    </h5>
+                    <div class="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                      @for (item of person.assignedTasks; track item.task.id) {
+                        <div class="flex items-start justify-between gap-1 rounded-lg border border-lines-light p-1.2 dark:border-lines-dark">
+                          <div>
+                            <div class="text-xs font-bold text-black dark:text-white">
+                              {{ item.task.id }} · {{ item.task.title }}
+                            </div>
+                            <div class="text-[11px] text-grey-medium">
+                              Board: {{ item.boardName }} | Status: {{ item.task.status }}
+                            </div>
+                          </div>
+                          <div class="shrink-0 rounded bg-purple-low px-1 py-0.4 text-xs font-bold text-purple">
+                            {{ item.timeToComplete }} hrs
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Heatmap Cell Tooltip -->
+    @if (hoveredCell) {
+      <div
+        class="rounded-xl border border-purple/30 bg-purple-low/40 p-1.6 dark:bg-purple-low/20"
+      >
+        <span class="text-xs font-bold text-purple">
+          {{ hoveredCell.person.name }} · {{ hoveredCell.day.dayName }} ({{ hoveredCell.day.dayLabel }}): {{ hoveredCell.day.hours }} hours scheduled
+        </span>
+        @if (hoveredCell.day.tasks.length > 0) {
+          <div class="mt-0.8 flex flex-wrap gap-1">
+            @for (t of hoveredCell.day.tasks; track t.taskTitle) {
+              <span class="rounded bg-white px-0.8 py-0.4 text-xs text-black shadow-sm dark:bg-grey-dark dark:text-white">
+                {{ t.taskTitle }} ({{ t.hours }}h)
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Heatmap Intensity Scale Legend -->
+    <div class="flex flex-wrap items-center justify-between gap-1.6 rounded-xl bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-xs font-bold uppercase text-grey-medium">Heatmap Daily Intensity:</span>
+      <div class="flex flex-wrap items-center gap-1.6 text-xs">
+        <div class="flex items-center gap-0.6">
+          <span class="h-3 w-3 rounded" [ngStyle]="{ 'background-color': darkMode ? '#20212c' : '#f4f7fd', 'border': '1px solid #828fa3' }"></span>
+          <span class="text-grey-medium">0h (Off)</span>
+        </div>
+        <div class="flex items-center gap-0.6">
+          <span class="h-3 w-3 rounded bg-purple/30"></span>
+          <span class="text-grey-medium">1-4h (Light)</span>
+        </div>
+        <div class="flex items-center gap-0.6">
+          <span class="h-3 w-3 rounded bg-purple/70"></span>
+          <span class="text-grey-medium">5-7h (Moderate)</span>
+        </div>
+        <div class="flex items-center gap-0.6">
+          <span class="h-3 w-3 rounded bg-purple"></span>
+          <span class="text-grey-medium">8h (Full Workday)</span>
+        </div>
+        <div class="flex items-center gap-0.6">
+          <span class="h-3 w-3 rounded bg-red"></span>
+          <span class="text-grey-medium">>8h (Overload)</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

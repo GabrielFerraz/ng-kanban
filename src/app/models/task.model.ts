@@ -21,6 +21,14 @@ export const TASK_TYPE_COLORS: Record<TaskType, string> = {
   [TaskType.Chore]: '#67e2ae',
 };
 
+export const DEFAULT_ASSIGNEES: string[] = [
+  'Alex Morgan',
+  'Sarah Connor',
+  'David Kim',
+  'Elena Rostova',
+  'Marcus Chen',
+];
+
 export interface Task {
   id: string;
   type: TaskType;
@@ -31,4 +39,6 @@ export interface Task {
   endDate: string;
   subtasks: SubTask[];
   dependencies: string[];
+  assignee?: string;
+  timeToComplete?: number; // hours
 }

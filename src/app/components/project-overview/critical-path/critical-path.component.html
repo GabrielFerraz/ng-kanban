@@ -1,0 +1,339 @@
+<div class="critical-path-widget flex flex-col gap-2.4">
+  <!-- Header with Summary -->
+  <div class="flex flex-wrap items-center justify-between gap-1.6 border-b border-lines-light pb-2 dark:border-lines-dark">
+    <div>
+      <h3 class="text-md font-bold leading-md text-black dark:text-white">
+        Critical Path & Dependency Blocker Analysis
+      </h3>
+      <p class="text-sm font-medium text-grey-medium">
+        Longest path of dependent tasks determining completion timeline and active blockers
+      </p>
+    </div>
+
+    <!-- Duration Pill -->
+    @if (analysis) {
+      <div class="flex items-center gap-1 rounded-xl bg-purple-low px-2 py-1 dark:bg-purple-low/50">
+        <span class="text-sm font-semibold text-grey-medium">Critical Path Duration:</span>
+        <span class="text-lg font-bold text-purple">
+          {{ analysis.totalDurationDays }} Days
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="grid grid-cols-2 gap-1.2 sm:grid-cols-4">
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Critical Path Duration</span>
+      <div class="mt-0.4 text-lg font-bold text-purple">
+        {{ analysis?.totalDurationDays || 0 }} <span class="text-sm font-normal text-grey-medium">days</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Critical Tasks</span>
+      <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
+        {{ analysis?.criticalPath?.length || 0 }} <span class="text-sm font-normal text-grey-medium">tasks on path</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Active Blockers</span>
+      <div class="mt-0.4 text-lg font-bold" [ngClass]="(analysis?.blockerCount || 0) > 0 ? 'text-red' : 'text-[#67e2ae]'">
+        {{ analysis?.blockerCount || 0 }} <span class="text-sm font-normal text-grey-medium">tasks blocking others</span>
+      </div>
+    </div>
+    <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
+      <span class="text-sm font-semibold uppercase text-grey-medium">Blocked Tasks</span>
+      <div class="mt-0.4 text-lg font-bold" [ngClass]="(analysis?.blockedCount || 0) > 0 ? 'text-red' : 'text-[#67e2ae]'">
+        {{ analysis?.blockedCount || 0 }} <span class="text-sm font-normal text-grey-medium">waiting on blockers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDED CRITICAL PATH SEQUENCE -->
+  @if (analysis && analysis.criticalPath.length > 0) {
+    <div class="rounded-xl border-2 border-purple/30 bg-purple-low/20 p-2 dark:border-purple/40 dark:bg-purple-low/10">
+      <div class="mb-1.6 flex flex-wrap items-center justify-between gap-1">
+        <div class="flex items-center gap-1">
+          <span class="flex h-2.4 w-2.4 items-center justify-center rounded-full bg-purple text-xs font-bold text-white">★</span>
+          <h4 class="text-sm font-bold uppercase tracking-wider text-purple">
+            Recommended Task Path to Take (Critical Path)
+          </h4>
+        </div>
+        <span class="text-xs font-semibold text-grey-medium">
+          Zero Slack (Float = 0) · Delays here delay the entire project!
+        </span>
+      </div>
+
+      <!-- Critical Path Nodes Chain -->
+      <div class="flex flex-wrap items-center gap-1.6 overflow-x-auto py-1">
+        @for (item of analysis.criticalPath; track item.task.id; let i = $index) {
+          <div
+            (click)="selectTask(item.task.id)"
+            (keydown.enter)="selectTask(item.task.id)"
+            tabindex="0"
+            role="button"
+            class="group relative flex cursor-pointer flex-col rounded-xl border-2 bg-white p-1.6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:bg-grey-dark"
+            [ngClass]="selectedTaskId === item.task.id ? 'border-purple ring-2 ring-purple/50' : 'border-purple/40'"
+          >
+            <!-- Step Badge -->
+            <div class="mb-0.8 flex items-center justify-between gap-1.2">
+              <span class="rounded bg-purple px-0.8 py-0.2 text-[10px] font-bold text-white">
+                Step {{ i + 1 }}
+              </span>
+              <span class="text-xs font-bold text-grey-medium">
+                Day {{ item.earliestStart }} - {{ item.earliestFinish }}
+              </span>
+            </div>
+
+            <!-- Task Title -->
+            <div class="max-w-[20rem] text-sm font-bold text-black group-hover:text-purple dark:text-white">
+              {{ item.task.id }} · {{ item.task.title }}
+            </div>
+
+            <!-- Meta info -->
+            <div class="mt-1 flex items-center justify-between gap-1 text-xs text-grey-medium">
+              <span>{{ item.duration }} days</span>
+              <span
+                class="rounded-full px-0.8 py-0.2 text-[10px] font-semibold"
+                [ngClass]="{
+                  'bg-[#67e2ae]/20 text-[#10b981]': item.task.status.toLowerCase().includes('done'),
+                  'bg-purple/20 text-purple': item.task.status.toLowerCase().includes('doing'),
+                  'bg-grey-medium/20 text-grey-medium': !item.task.status.toLowerCase().includes('done') && !item.task.status.toLowerCase().includes('doing')
+                }"
+              >
+                {{ item.task.status }}
+              </span>
+            </div>
+
+            @if (item.task.assignee) {
+              <div class="mt-0.6 text-[11px] font-medium text-grey-medium">
+                👤 {{ item.task.assignee }}
+              </div>
+            }
+          </div>
+
+          <!-- Connecting Arrow -->
+          @if (i < analysis.criticalPath.length - 1) {
+            <div class="flex items-center text-purple">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- WHICH TASK IS BLOCKING WHICH - BLOCKER & BLOCKED SECTION -->
+  <div class="rounded-xl border border-lines-light p-2 dark:border-lines-dark">
+    <div class="mb-2 flex flex-wrap items-center justify-between gap-1.6">
+      <div>
+        <h4 class="text-sm font-bold uppercase tracking-wider text-grey-medium">
+          Task Dependency Relationships (Who is Blocking Who)
+        </h4>
+        <p class="text-xs text-grey-medium">
+          Explicit blocking dependencies across all combined project boards
+        </p>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="flex rounded-lg bg-grey-light p-0.4 dark:bg-grey-vdark">
+        <button
+          type="button"
+          (click)="setFilter('all')"
+          [ngClass]="{
+            'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': filterMode === 'all',
+            'text-grey-medium': filterMode !== 'all'
+          }"
+          class="rounded-md px-1.2 py-0.6 text-xs font-bold"
+        >
+          All ({{ analysis?.tasks?.length || 0 }})
+        </button>
+        <button
+          type="button"
+          (click)="setFilter('blocking')"
+          [ngClass]="{
+            'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': filterMode === 'blocking',
+            'text-grey-medium': filterMode !== 'blocking'
+          }"
+          class="rounded-md px-1.2 py-0.6 text-xs font-bold"
+        >
+          Blockers ({{ analysis?.blockerCount || 0 }})
+        </button>
+        <button
+          type="button"
+          (click)="setFilter('blocked')"
+          [ngClass]="{
+            'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': filterMode === 'blocked',
+            'text-grey-medium': filterMode !== 'blocked'
+          }"
+          class="rounded-md px-1.2 py-0.6 text-xs font-bold"
+        >
+          Blocked ({{ analysis?.blockedCount || 0 }})
+        </button>
+        <button
+          type="button"
+          (click)="setFilter('critical')"
+          [ngClass]="{
+            'bg-white text-purple shadow-sm dark:bg-grey-dark dark:text-white': filterMode === 'critical',
+            'text-grey-medium': filterMode !== 'critical'
+          }"
+          class="rounded-md px-1.2 py-0.6 text-xs font-bold"
+        >
+          Critical Path ({{ analysis?.criticalPath?.length || 0 }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Blocking vs Blocked Cards Grid -->
+    <div class="grid grid-cols-1 gap-1.6 md:grid-cols-2">
+      <!-- Section 1: Active Blockers (Tasks Blocking Downstream Work) -->
+      <div class="flex flex-col gap-1 rounded-xl border border-lines-light bg-grey-light/30 p-1.6 dark:border-lines-dark dark:bg-grey-vdark/30">
+        <div class="flex items-center justify-between border-b border-lines-light pb-0.8 dark:border-lines-dark">
+          <span class="text-xs font-bold uppercase text-red">⚠️ Blockers (Holding Up Other Tasks)</span>
+          <span class="text-xs text-grey-medium">Tasks that must finish first</span>
+        </div>
+
+        @for (item of analysis?.tasks; track item.task.id) {
+          @if (item.blockingTaskIds.length > 0) {
+            <div
+              class="flex flex-col gap-0.6 rounded-lg border border-lines-light bg-white p-1.2 shadow-sm dark:border-lines-dark dark:bg-grey-dark"
+              [ngClass]="item.isCurrentlyBlocking ? 'border-l-4 border-l-red' : 'border-l-4 border-l-[#67e2ae]'"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-black dark:text-white">
+                  {{ item.task.id }} · {{ item.task.title }}
+                </span>
+                <span
+                  class="rounded px-0.8 py-0.2 text-[10px] font-bold"
+                  [ngClass]="item.isCurrentlyBlocking ? 'bg-red/15 text-red' : 'bg-[#67e2ae]/15 text-[#10b981]'"
+                >
+                  {{ item.isCurrentlyBlocking ? 'Currently Blocking' : 'Resolved (Done)' }}
+                </span>
+              </div>
+              <div class="text-[11px] text-grey-medium">
+                Board: {{ item.boardName }} | Status: {{ item.task.status }} | Assigned: {{ item.task.assignee || 'Unassigned' }}
+              </div>
+              <!-- List of tasks blocked by this task -->
+              <div class="mt-0.4 rounded bg-grey-light p-0.8 text-xs dark:bg-grey-vdark">
+                <span class="font-semibold text-black dark:text-white">Directly Blocks ({{ item.blockingTaskIds.length }}): </span>
+                <span class="text-purple">
+                  @for (blockedId of item.blockingTaskIds; track blockedId; let last = $last) {
+                    {{ getTaskTitle(blockedId) }}{{ last ? '' : ', ' }}
+                  }
+                </span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Section 2: Blocked Tasks (Tasks Waiting on Prerequisites) -->
+      <div class="flex flex-col gap-1 rounded-xl border border-lines-light bg-grey-light/30 p-1.6 dark:border-lines-dark dark:bg-grey-vdark/30">
+        <div class="flex items-center justify-between border-b border-lines-light pb-0.8 dark:border-lines-dark">
+          <span class="text-xs font-bold uppercase text-purple">🔒 Blocked Tasks (Waiting on Prerequisites)</span>
+          <span class="text-xs text-grey-medium">Tasks unable to start or finish</span>
+        </div>
+
+        @for (item of analysis?.tasks; track item.task.id) {
+          @if (item.blockedByTaskIds.length > 0) {
+            <div
+              class="flex flex-col gap-0.6 rounded-lg border border-lines-light bg-white p-1.2 shadow-sm dark:border-lines-dark dark:bg-grey-dark"
+              [ngClass]="item.isCurrentlyBlocked ? 'border-l-4 border-l-red' : 'border-l-4 border-l-[#67e2ae]'"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-black dark:text-white">
+                  {{ item.task.id }} · {{ item.task.title }}
+                </span>
+                <span
+                  class="rounded px-0.8 py-0.2 text-[10px] font-bold"
+                  [ngClass]="item.isCurrentlyBlocked ? 'bg-red/15 text-red' : 'bg-[#67e2ae]/15 text-[#10b981]'"
+                >
+                  {{ item.isCurrentlyBlocked ? 'Blocked by Upstream' : 'Prerequisites Met' }}
+                </span>
+              </div>
+              <div class="text-[11px] text-grey-medium">
+                Board: {{ item.boardName }} | Status: {{ item.task.status }} | Assigned: {{ item.task.assignee || 'Unassigned' }}
+              </div>
+              <!-- List of tasks blocking this task -->
+              <div class="mt-0.4 rounded bg-grey-light p-0.8 text-xs dark:bg-grey-vdark">
+                <span class="font-semibold text-black dark:text-white">Waiting On ({{ item.blockedByTaskIds.length }}): </span>
+                <span class="text-red">
+                  @for (prereqId of item.blockedByTaskIds; track prereqId; let last = $last) {
+                    {{ getTaskTitle(prereqId) }}{{ last ? '' : ', ' }}
+                  }
+                </span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Complete Dependency & Float Schedule Table -->
+    <div class="mt-2 overflow-x-auto rounded-xl border border-lines-light dark:border-lines-dark">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-grey-light text-grey-medium dark:bg-grey-vdark">
+          <tr>
+            <th class="px-2 py-1.2 font-semibold">Task ID & Title</th>
+            <th class="px-2 py-1.2 font-semibold">Board</th>
+            <th class="px-2 py-1.2 font-semibold">Status</th>
+            <th class="px-2 py-1.2 font-semibold">Duration</th>
+            <th class="px-2 py-1.2 font-semibold">Slack (Float)</th>
+            <th class="px-2 py-1.2 font-semibold">Critical Path?</th>
+            <th class="px-2 py-1.2 font-semibold">Blocks</th>
+            <th class="px-2 py-1.2 font-semibold">Blocked By</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-lines-light dark:divide-lines-dark">
+          @for (item of getFilteredTasks(); track item.task.id) {
+            <tr
+              class="hover:bg-grey-light/40 dark:hover:bg-grey-vdark/40"
+              [ngClass]="{ 'bg-purple-low/10 font-medium': item.isCritical }"
+            >
+              <td class="px-2 py-1.2">
+                <div class="font-bold text-black dark:text-white">{{ item.task.id }}</div>
+                <div class="text-xs text-grey-medium">{{ item.task.title }}</div>
+              </td>
+              <td class="px-2 py-1.2 text-grey-medium">{{ item.boardName }}</td>
+              <td class="px-2 py-1.2 font-medium">{{ item.task.status }}</td>
+              <td class="px-2 py-1.2 font-medium">{{ item.duration }}d</td>
+              <td class="px-2 py-1.2">
+                <span
+                  class="font-bold"
+                  [ngClass]="item.slack === 0 ? 'text-purple' : 'text-grey-medium'"
+                >
+                  {{ item.slack }} days
+                </span>
+              </td>
+              <td class="px-2 py-1.2">
+                @if (item.isCritical) {
+                  <span class="rounded bg-purple px-0.8 py-0.2 text-[10px] font-bold text-white">
+                    CRITICAL
+                  </span>
+                } @else {
+                  <span class="text-xs text-grey-medium">Non-critical</span>
+                }
+              </td>
+              <td class="px-2 py-1.2 text-xs">
+                @if (item.blockingTaskIds.length > 0) {
+                  <span class="font-semibold text-red">{{ item.blockingTaskIds.join(', ') }}</span>
+                } @else {
+                  <span class="text-grey-medium">—</span>
+                }
+              </td>
+              <td class="px-2 py-1.2 text-xs">
+                @if (item.blockedByTaskIds.length > 0) {
+                  <span class="font-semibold text-purple">{{ item.blockedByTaskIds.join(', ') }}</span>
+                } @else {
+                  <span class="text-grey-medium">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

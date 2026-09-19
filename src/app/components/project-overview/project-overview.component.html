@@ -1,0 +1,204 @@
+<div class="overview-page flex-1 p-2.4 sm:p-3.2 lg:p-4.8">
+  <!-- Top Banner / Filter & Actions Header -->
+  <div class="mb-3.2 flex flex-wrap items-center justify-between gap-2.4">
+    <div>
+      <h1 class="text-xl font-bold leading-xl text-black dark:text-white">
+        Project Overview & Cross-Board Analytics
+      </h1>
+      <p class="mt-0.4 text-sm font-medium text-grey-medium">
+        Combined delivery metrics, velocity tracking, capacity utilization, and critical path analysis
+      </p>
+    </div>
+
+    <!-- Filter & Reset Layout Controls -->
+    <div class="flex flex-wrap items-center gap-1.6">
+      <!-- Board Scope Selector -->
+      <div class="flex items-center gap-0.8">
+        <label for="board-filter" class="text-sm font-bold text-grey-medium">Scope:</label>
+        <select
+          id="board-filter"
+          [ngModel]="selectedBoardFilter"
+          (ngModelChange)="onFilterChange($event)"
+          class="h-12 rounded-lg border border-lines-light bg-white px-1.6 text-sm font-bold text-black focus:border-purple focus:ring-0 dark:border-lines-dark dark:bg-grey-dark dark:text-white"
+        >
+          <option value="all">★ All Boards Combined ({{ totalBoardsCount }})</option>
+          @for (board of boards; track board.name) {
+            <option [value]="board.name">{{ board.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Reset Draggable Layout Button -->
+      <button
+        type="button"
+        (click)="resetLayout()"
+        class="flex h-12 items-center gap-0.8 rounded-lg border border-lines-light bg-white px-1.6 text-sm font-bold text-purple shadow-sm hover:bg-purple-low dark:border-lines-dark dark:bg-grey-dark"
+        title="Reset widget positions to default order"
+      >
+        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24">
+          <path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.77 20 14.45 20 13c0-4.42-3.58-8-8-8zm-6 8c0-1.01.25-1.97.7-2.8L5.24 8.74C4.46 10.23 4 11.55 4 13c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6z" />
+        </svg>
+        Reset Layout
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Stats Bar -->
+  <div class="mb-3.2 grid grid-cols-2 gap-1.6 sm:grid-cols-4">
+    <div class="flex items-center gap-1.6 rounded-2xl border border-lines-light bg-white p-2.4 shadow-sm dark:border-lines-dark dark:bg-grey-dark">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-low text-purple dark:bg-purple-low/50">
+        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Total Boards</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ totalBoardsCount }} Boards</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.6 rounded-2xl border border-lines-light bg-white p-2.4 shadow-sm dark:border-lines-dark dark:bg-grey-dark">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-low text-purple dark:bg-purple-low/50">
+        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Total Tasks</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ totalTasksCount }} Tasks</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.6 rounded-2xl border border-lines-light bg-white p-2.4 shadow-sm dark:border-lines-dark dark:bg-grey-dark">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#67e2ae]/20 text-[#10b981]">
+        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Completed Work</div>
+        <div class="text-lg font-bold text-[#67e2ae]">
+          {{ completedTasksCount }} <span class="text-sm font-normal text-grey-medium">({{ completionPercentage }}%)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.6 rounded-2xl border border-lines-light bg-white p-2.4 shadow-sm dark:border-lines-dark dark:bg-grey-dark">
+      <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-low text-purple dark:bg-purple-low/50">
+        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Active Team</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ activeAssigneesCount }} Members</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drag-and-Drop Hint -->
+  <div class="mb-2 flex items-center justify-between text-xs text-grey-medium">
+    <span class="flex items-center gap-0.6">
+      <svg class="h-4 w-4 fill-grey-medium" viewBox="0 0 24 24">
+        <path d="M9 3H7v2h2V3zm4 0h-2v2h2V3zm4 0h-2v2h2V3zM9 7H7v2h2V7zm4 0h-2v2h2V7zm4 0h-2v2h2V7zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z" />
+      </svg>
+      Drag widgets by the grip handle to reorder the layout to your preference
+    </span>
+  </div>
+
+  <!-- DRAGGABLE WIDGETS DROP LIST -->
+  <div
+    cdkDropList
+    (cdkDropListDropped)="onWidgetDrop($event)"
+    class="widgets-container flex flex-col gap-3.2"
+  >
+    @for (widget of widgets; track widget.id) {
+      <div
+        cdkDrag
+        class="widget-card overflow-hidden rounded-2xl border border-lines-light bg-white shadow-sm duration-200 hover:shadow-md dark:border-lines-dark dark:bg-grey-dark"
+      >
+        <!-- Widget Drag Handle & Header -->
+        <div
+          class="flex items-center justify-between border-b border-lines-light bg-grey-light/50 px-2.4 py-1.6 dark:border-lines-dark dark:bg-grey-vdark/50"
+        >
+          <!-- Left: Drag Handle and Title -->
+          <div class="flex items-center gap-1.6">
+            <div
+              cdkDragHandle
+              class="drag-handle cursor-grab rounded-md p-0.8 text-grey-medium transition-colors hover:bg-purple-low hover:text-purple active:cursor-grabbing"
+              title="Click and drag to reorder this widget"
+            >
+              <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                <path d="M9 3H7v2h2V3zm4 0h-2v2h2V3zm4 0h-2v2h2V3zM9 7H7v2h2V7zm4 0h-2v2h2V7zm4 0h-2v2h2V7zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z" />
+              </svg>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-1.2">
+                <h2 class="text-md font-bold text-black dark:text-white">
+                  {{ widget.title }}
+                </h2>
+                <span class="rounded-full bg-purple-low px-1 py-0.2 text-xs font-bold text-purple">
+                  {{ widget.badge }}
+                </span>
+              </div>
+              <p class="text-xs text-grey-medium">{{ widget.description }}</p>
+            </div>
+          </div>
+
+          <!-- Right: Controls (Collapse/Expand) -->
+          <div class="flex items-center gap-0.8">
+            <button
+              type="button"
+              (click)="toggleCollapse(widget)"
+              class="rounded-lg p-0.8 text-grey-medium hover:bg-grey-light hover:text-black dark:hover:bg-grey-vdark dark:hover:text-white"
+              [title]="widget.collapsed ? 'Expand widget' : 'Collapse widget'"
+            >
+              @if (widget.collapsed) {
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                </svg>
+              } @else {
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Widget Content Body -->
+        @if (!widget.collapsed) {
+          <div class="p-2.4 sm:p-3.2">
+            @switch (widget.id) {
+              @case ('burndown-burnup') {
+                <app-burndown-burnup
+                  [tasksWithBoard]="filteredTasksWithBoard"
+                  [darkMode]="darkMode"
+                ></app-burndown-burnup>
+              }
+              @case ('velocity-tracking') {
+                <app-velocity-tracking
+                  [tasksWithBoard]="filteredTasksWithBoard"
+                  [darkMode]="darkMode"
+                ></app-velocity-tracking>
+              }
+              @case ('utilization-heatmap') {
+                <app-utilization-heatmap
+                  [tasksWithBoard]="filteredTasksWithBoard"
+                  [darkMode]="darkMode"
+                ></app-utilization-heatmap>
+              }
+              @case ('critical-path') {
+                <app-critical-path
+                  [tasksWithBoard]="filteredTasksWithBoard"
+                  [darkMode]="darkMode"
+                ></app-critical-path>
+              }
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
