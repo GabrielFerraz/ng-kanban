@@ -46,10 +46,6 @@ export function buildBoardCsv(board: Board): string {
         task.id,
         task.title,
         task.type,
-        task.status,
-        task.startDate,
-        task.endDate,
-        task.assignee ?? '',
         task.timeToComplete ?? '',
         task.dependencies.join('; '),
         `${task.subtasks.filter((s) => s.isCompleted).length}/${task.subtasks.length}`,
@@ -69,30 +65,13 @@ export function buildProjectOverviewCsv(data: ProjectOverviewCsvData): string {
 
   sections.push(
     rowsToCsvBlock(
-      'Burndown & Burnup',
-      ['Date', 'Label', 'Total Scope', 'Completed Tasks', 'Burndown Actual', 'Burndown Ideal', 'Burnup Completed', 'Burnup Ideal'],
-      data.burndownBurnup.points.map((p) => [
-        p.date,
-        p.label,
-        p.totalScope,
-        p.completedTasks,
-        p.burndownActual,
-        p.burndownIdeal,
-        p.burnupCompleted,
-        p.burnupIdeal,
-      ]),
-    ),
-  );
-
-  sections.push(
-    rowsToCsvBlock(
       'Velocity Tracking',
       ['Week', 'Date Range', 'Completed Count', 'Diff From Average', 'Percent From Average', 'Week Over Week Change', 'Tier'],
       data.velocity.weeks.map((w) => [
         w.label,
         w.dateRange,
-        w.completedCount,
         w.diffFromAverage,
+        w.completedCount,
         w.percentFromAverage,
         w.wowChange ?? '',
         w.tierLabel,
@@ -108,8 +87,7 @@ export function buildProjectOverviewCsv(data: ProjectOverviewCsvData): string {
         person.name,
         person.currentWeekHours,
         person.capacityFilledPercentage,
-        person.statusLabel,
-        ...person.days.map((d) => d.hours),
+        person.statusLabel
       ]),
     ),
   );
@@ -119,14 +97,14 @@ export function buildProjectOverviewCsv(data: ProjectOverviewCsvData): string {
       'Critical Path & Blocker Analysis',
       ['Task ID', 'Title', 'Board', 'Duration (days)', 'Earliest Start', 'Earliest Finish', 'Slack', 'Is Critical', 'Blocking Tasks', 'Blocked By Tasks'],
       data.criticalPath.tasks.map((t) => [
+        t.earliestFinish,
         t.task.id,
         t.task.title,
+        t.isCritical ? 'Yes' : 'No',
         t.boardName,
         t.duration,
         t.earliestStart,
-        t.earliestFinish,
         t.slack,
-        t.isCritical ? 'Yes' : 'No',
         t.blockingTaskIds.join('; '),
         t.blockedByTaskIds.join('; '),
       ]),
