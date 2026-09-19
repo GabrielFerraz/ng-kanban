@@ -11,18 +11,25 @@ export function getDescendantIds(
   taskId: string,
   tasksById: Map<string, Task>,
 ): Set<string> {
+  const dependentsById = new Map<string, string[]>();
+  tasksById.forEach((task) => {
+    (task.dependencies ?? []).forEach((dependencyId) => {
+      dependentsById.set(dependencyId, [
+        ...(dependentsById.get(dependencyId) ?? []),
+        task.id,
+      ]);
+    });
+  });
+
   const descendants = new Set<string>();
   const stack = [taskId];
 
   while (stack.length) {
     const current = stack.pop()!;
-    for (const task of tasksById.values()) {
-      if (
-        (task.dependencies ?? []).includes(current) &&
-        !descendants.has(task.id)
-      ) {
-        descendants.add(task.id);
-        stack.push(task.id);
+    for (const dependentId of dependentsById.get(current) ?? []) {
+      if (!descendants.has(dependentId)) {
+        descendants.add(dependentId);
+        stack.push(dependentId);
       }
     }
   }

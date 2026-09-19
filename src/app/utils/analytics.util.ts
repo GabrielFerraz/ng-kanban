@@ -427,15 +427,23 @@ export function calculateUtilizationHeatmap(tasksWithBoard: TaskWithBoard[]): Ut
   // Ensure default assignees are included if set is empty
   DEFAULT_ASSIGNEES.forEach((name) => assigneeSet.add(name));
   const assigneeList = Array.from(assigneeSet);
+  const tasksByAssignee = new Map<string, { task: Task; boardName: string; timeToComplete: number; isDone: boolean }[]>();
+
+  tasksWithBoard.forEach(({ task, boardName, isDone }, index) => {
+    const assignee = task.assignee?.trim() || DEFAULT_ASSIGNEES[index % DEFAULT_ASSIGNEES.length];
+    const assignedTasks = tasksByAssignee.get(assignee) ?? [];
+    assignedTasks.push({
+      task,
+      boardName,
+      timeToComplete: task.timeToComplete ?? 12,
+      isDone,
+    });
+    tasksByAssignee.set(assignee, assignedTasks);
+  });
 
   const persons: PersonUtilization[] = assigneeList.map((personName, personIdx) => {
     // Collect tasks for this person
-    const assignedTasks = tasksWithBoard
-      .filter(({ task }) => (task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length]) === personName)
-      .map(({ task, boardName, isDone }) => {
-        const time = task.timeToComplete ?? 12; // default 12 hours
-        return { task, boardName, timeToComplete: time, isDone };
-      });
+    const assignedTasks = tasksByAssignee.get(personName) ?? [];
 
     // Calculate daily hours for Mon - Fri
     const days: HeatmapDay[] = workdays.map((dayDate) => {

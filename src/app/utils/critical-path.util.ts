@@ -83,8 +83,13 @@ export function calculateCriticalPath(
     });
   });
 
+  const transitiveSuccessorCache = new Map<string, Set<string>>();
+
   // Calculate transitive downstream impact for each task
   function getTransitiveSuccessors(taskId: string): Set<string> {
+    const cached = transitiveSuccessorCache.get(taskId);
+    if (cached) return cached;
+
     const visited = new Set<string>();
     const stack = [...(successors.get(taskId) ?? [])];
     while (stack.length > 0) {
@@ -96,6 +101,7 @@ export function calculateCriticalPath(
         });
       }
     }
+    transitiveSuccessorCache.set(taskId, visited);
     return visited;
   }
 
@@ -113,8 +119,9 @@ export function calculateCriticalPath(
   });
 
   const sortedOrder: string[] = [];
-  while (queue.length > 0) {
-    const id = queue.shift()!;
+  let queueIndex = 0;
+  while (queueIndex < queue.length) {
+    const id = queue[queueIndex++];
     sortedOrder.push(id);
     (successors.get(id) ?? []).forEach((succId) => {
       const deg = (inDegree.get(succId) ?? 1) - 1;
@@ -127,8 +134,9 @@ export function calculateCriticalPath(
 
   // If there are cycle nodes not in sortedOrder, append them
   if (sortedOrder.length < tasksWithBoard.length) {
+    const sortedIds = new Set(sortedOrder);
     tasksWithBoard.forEach(({ task }) => {
-      if (!sortedOrder.includes(task.id)) {
+      if (!sortedIds.has(task.id)) {
         sortedOrder.push(task.id);
       }
     });

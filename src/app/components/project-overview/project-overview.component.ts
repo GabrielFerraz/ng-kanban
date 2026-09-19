@@ -107,6 +107,10 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
   selectedBoardFilter = 'all'; // 'all' or board name
   allTasksWithBoard: TaskWithBoard[] = [];
   filteredTasksWithBoard: TaskWithBoard[] = [];
+  totalTasksCount = 0;
+  completedTasksCount = 0;
+  completionPercentage = 0;
+  activeAssigneesCount = 5;
 
   constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
@@ -134,6 +138,24 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
         (item) => item.boardName === this.selectedBoardFilter,
       );
     }
+    this.updateSummaryMetrics();
+  }
+
+  private updateSummaryMetrics(): void {
+    const assignees = new Set<string>();
+    let completedTasksCount = 0;
+
+    this.filteredTasksWithBoard.forEach(({ task, isDone }) => {
+      if (isDone) completedTasksCount++;
+      if (task.assignee?.trim()) assignees.add(task.assignee.trim());
+    });
+
+    this.totalTasksCount = this.filteredTasksWithBoard.length;
+    this.completedTasksCount = completedTasksCount;
+    this.completionPercentage = this.totalTasksCount === 0
+      ? 0
+      : Math.round((this.completedTasksCount / this.totalTasksCount) * 100);
+    this.activeAssigneesCount = Math.max(assignees.size, 5);
   }
 
   onFilterChange(newFilter: string): void {
@@ -222,24 +244,4 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
     return this.boards?.length || 0;
   }
 
-  get totalTasksCount(): number {
-    return this.filteredTasksWithBoard.length;
-  }
-
-  get completedTasksCount(): number {
-    return this.filteredTasksWithBoard.filter((t) => t.isDone).length;
-  }
-
-  get completionPercentage(): number {
-    if (this.totalTasksCount === 0) return 0;
-    return Math.round((this.completedTasksCount / this.totalTasksCount) * 100);
-  }
-
-  get activeAssigneesCount(): number {
-    const set = new Set<string>();
-    this.filteredTasksWithBoard.forEach(({ task }) => {
-      if (task.assignee?.trim()) set.add(task.assignee.trim());
-    });
-    return Math.max(set.size, 5);
-  }
 }
