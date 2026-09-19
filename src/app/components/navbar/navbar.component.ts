@@ -28,6 +28,7 @@ export class NavbarComponent {
   @Output() boardAdd = new EventEmitter<void>();
   @Output() boardEdit = new EventEmitter<void>();
   @Output() boardDelete = new EventEmitter<void>();
+  @Output() boardExport = new EventEmitter<void>();
   @Output() taskAdd = new EventEmitter<void>();
   @Output() overviewSelect = new EventEmitter<void>();
 
@@ -53,6 +54,10 @@ export class NavbarComponent {
 
   deleteBoard(): void {
     this.boardDelete.emit();
+  }
+
+  exportBoard(): void {
+    this.boardExport.emit();
   }
 
   addTask(): void {

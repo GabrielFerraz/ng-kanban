@@ -20,6 +20,7 @@ import { ThemeTogglerComponent } from './components/sidebar/theme-toggler/theme-
 import { Board } from './models/board.model';
 import { Task } from './models/task.model';
 import { BoardDataService } from './services/board-data/board-data.service';
+import { buildBoardCsv } from './utils/csv-export.util';
 
 @Component({
   selector: 'app-root',
@@ -142,6 +143,21 @@ export class AppComponent implements OnInit {
 
       this.boardDataService.deleteBoard();
     });
+  }
+
+  exportBoardToCsv(): void {
+    const board = this.activeBoard();
+    if (!board || !isPlatformBrowser(this.platformId)) return;
+
+    const csv = buildBoardCsv(board);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `${board.name}-${dateStr}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   addTask(): void {

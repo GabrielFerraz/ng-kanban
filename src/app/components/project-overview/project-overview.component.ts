@@ -19,7 +19,15 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Board } from '../../models/board.model';
-import { TaskWithBoard, getAllTasksWithBoard } from '../../utils/analytics.util';
+import {
+  TaskWithBoard,
+  calculateBurndownBurnup,
+  calculateUtilizationHeatmap,
+  calculateVelocityTracking,
+  getAllTasksWithBoard,
+} from '../../utils/analytics.util';
+import { calculateCriticalPath } from '../../utils/critical-path.util';
+import { buildProjectOverviewCsv } from '../../utils/csv-export.util';
 import { BurndownBurnupComponent } from './burndown-burnup/burndown-burnup.component';
 import { CriticalPathComponent } from './critical-path/critical-path.component';
 import { UtilizationHeatmapComponent } from './utilization-heatmap/utilization-heatmap.component';
@@ -146,6 +154,27 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
   resetLayout(): void {
     this.widgets = DEFAULT_WIDGETS.map((w) => ({ ...w, collapsed: false }));
     this.saveWidgetOrder();
+  }
+
+  exportToCsv(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const csv = buildProjectOverviewCsv({
+      scopeLabel: this.selectedBoardFilter === 'all' ? 'All Boards Combined' : this.selectedBoardFilter,
+      burndownBurnup: calculateBurndownBurnup(this.filteredTasksWithBoard),
+      velocity: calculateVelocityTracking(this.filteredTasksWithBoard),
+      utilization: calculateUtilizationHeatmap(this.filteredTasksWithBoard),
+      criticalPath: calculateCriticalPath(this.filteredTasksWithBoard),
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `project-overview-${this.selectedBoardFilter}-${dateStr}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   private loadWidgetOrder(): void {

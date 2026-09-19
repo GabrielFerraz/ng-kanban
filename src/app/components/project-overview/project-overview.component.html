@@ -40,6 +40,19 @@
         </svg>
         Reset Layout
       </button>
+
+      <!-- Export Dashboard to CSV Button -->
+      <button
+        type="button"
+        (click)="exportToCsv()"
+        class="flex h-12 items-center gap-0.8 rounded-lg border border-lines-light bg-white px-1.6 text-sm font-bold text-purple shadow-sm hover:bg-purple-low dark:border-lines-dark dark:bg-grey-dark"
+        title="Export dashboard analytics to a CSV file"
+      >
+        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+        </svg>
+        Export CSV
+      </button>
     </div>
   </div>
 

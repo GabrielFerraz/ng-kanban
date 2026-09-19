@@ -108,6 +108,12 @@
       Edit Board
     </button>
     <button
+      (click)="exportBoard()"
+      class="text-left text-ms font-medium leading-ms text-grey-medium"
+    >
+      Export to CSV
+    </button>
+    <button
       (click)="deleteBoard()"
       class="text-left text-ms font-medium leading-ms text-red"
     >
