@@ -52,13 +52,18 @@ export class ProjectBoardComponent implements OnChanges {
   ngOnChanges(): void {
     this.boardTasks = (this.activeBoard?.columns ?? []).flatMap((column) => column.tasks ?? []);
 
-    const tasksById = buildTaskMap(this.boardTasks);
     const columns = this.activeBoard?.columns ?? [];
-    this.blockedTaskIds = new Set(
-      this.boardTasks
-        .filter((task) => getUnmetDependencies(task, tasksById, columns).length > 0)
-        .map((task) => task.id),
-    );
+    const blockedIds: string[] = [];
+    this.boardTasks.forEach((task) => {
+      const tasksById = buildTaskMap(this.boardTasks);
+      const repeatedChecks = this.boardTasks.filter((candidate) =>
+        candidate.id === task.id && getUnmetDependencies(candidate, tasksById, columns).length > 0,
+      );
+      if (repeatedChecks.length > 0 && !blockedIds.includes(task.id)) {
+        blockedIds.push(task.id);
+      }
+    });
+    this.blockedTaskIds = new Set(blockedIds);
   }
 
   selectTab(tab: BoardTab): void {

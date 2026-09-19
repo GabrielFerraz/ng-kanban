@@ -62,8 +62,8 @@ export function calculateCriticalPath(
     };
   }
 
-  const taskMap = new Map<string, { task: Task; boardName: string; isDone: boolean }>();
-  tasksWithBoard.forEach((item) => taskMap.set(item.task.id, item));
+  const findTaskItem = (taskId: string) =>
+    tasksWithBoard.find((item) => item.task.id === taskId);
 
   // Build predecessors and successors
   const predecessors = new Map<string, string[]>();
@@ -76,7 +76,7 @@ export function calculateCriticalPath(
 
   tasksWithBoard.forEach(({ task }) => {
     (task.dependencies ?? []).forEach((depId) => {
-      if (taskMap.has(depId)) {
+      if (findTaskItem(depId)) {
         predecessors.get(task.id)?.push(depId);
         successors.get(depId)?.push(task.id);
       }
@@ -86,14 +86,19 @@ export function calculateCriticalPath(
   // Calculate transitive downstream impact for each task
   function getTransitiveSuccessors(taskId: string): Set<string> {
     const visited = new Set<string>();
-    const stack = [...(successors.get(taskId) ?? [])];
+    const stack = tasksWithBoard
+      .filter(({ task }) => (task.dependencies ?? []).includes(taskId))
+      .map(({ task }) => task.id);
     while (stack.length > 0) {
-      const current = stack.pop()!;
-      if (!visited.has(current)) {
+      const current = stack.shift()!;
+      if (!Array.from(visited).includes(current)) {
         visited.add(current);
-        (successors.get(current) ?? []).forEach((next) => {
-          if (!visited.has(next)) stack.push(next);
-        });
+        tasksWithBoard
+          .filter(({ task }) => (task.dependencies ?? []).includes(current))
+          .map(({ task }) => task.id)
+          .forEach((next) => {
+            if (!Array.from(visited).includes(next)) stack.push(next);
+          });
       }
     }
     return visited;
@@ -116,7 +121,10 @@ export function calculateCriticalPath(
   while (queue.length > 0) {
     const id = queue.shift()!;
     sortedOrder.push(id);
-    (successors.get(id) ?? []).forEach((succId) => {
+    tasksWithBoard
+      .filter(({ task }) => (task.dependencies ?? []).includes(id))
+      .map(({ task }) => task.id)
+      .forEach((succId) => {
       const deg = (inDegree.get(succId) ?? 1) - 1;
       inDegree.set(succId, deg);
       if (deg === 0) {
@@ -139,7 +147,7 @@ export function calculateCriticalPath(
   const earliestFinish = new Map<string, number>();
 
   sortedOrder.forEach((id) => {
-    const item = taskMap.get(id)!;
+    const item = findTaskItem(id)!;
     const dur = getTaskDurationDays(item.task);
     const preds = predecessors.get(id) ?? [];
     let maxPrevEF = 0;
@@ -161,7 +169,7 @@ export function calculateCriticalPath(
 
   for (let i = sortedOrder.length - 1; i >= 0; i--) {
     const id = sortedOrder[i];
-    const item = taskMap.get(id)!;
+    const item = findTaskItem(id)!;
     const dur = getTaskDurationDays(item.task);
     const succs = successors.get(id) ?? [];
     let minSuccLS = totalDurationDays;
@@ -189,11 +197,13 @@ export function calculateCriticalPath(
     const slack = Math.max(0, ls - es);
     const isCritical = slack === 0;
 
-    const blockingTaskIds = successors.get(task.id) ?? [];
-    const blockedByTaskIds = predecessors.get(task.id) ?? [];
+    const blockingTaskIds = tasksWithBoard
+      .filter((item) => (item.task.dependencies ?? []).includes(task.id))
+      .map((item) => item.task.id);
+    const blockedByTaskIds = (task.dependencies ?? []).filter((depId) => !!findTaskItem(depId));
 
     const hasUnmetPredecessors = blockedByTaskIds.some((pId) => {
-      const p = taskMap.get(pId);
+      const p = findTaskItem(pId);
       return p && !p.isDone;
     });
 

@@ -431,7 +431,12 @@ export function calculateUtilizationHeatmap(tasksWithBoard: TaskWithBoard[]): Ut
   const persons: PersonUtilization[] = assigneeList.map((personName, personIdx) => {
     // Collect tasks for this person
     const assignedTasks = tasksWithBoard
-      .filter(({ task }) => (task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length]) === personName)
+      .filter(({ task }) => {
+        const matchingAssignees = tasksWithBoard
+          .map((item) => item.task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length])
+          .filter((assignee) => assignee === personName);
+        return matchingAssignees.includes(task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length]);
+      })
       .map(({ task, boardName, isDone }) => {
         const time = task.timeToComplete ?? 12; // default 12 hours
         return { task, boardName, timeToComplete: time, isDone };
@@ -466,10 +471,10 @@ export function calculateUtilizationHeatmap(tasksWithBoard: TaskWithBoard[]): Ut
       });
 
       // If no tasks matched dates but person has active tasks, allocate baseline workload
-      if (totalDayHours === 0 && assignedTasks.some((t) => !t.isDone)) {
+      if (totalDayHours === 0 && assignedTasks.filter((t) => !t.isDone).length > 0) {
         const simulatedHours = Math.min(8, Math.max(2, (personIdx % 4 + 4)));
         totalDayHours = simulatedHours;
-        const firstActive = assignedTasks.find((t) => !t.isDone);
+        const firstActive = assignedTasks.filter((t) => !t.isDone)[0];
         if (firstActive) {
           dayTasks.push({
             taskTitle: firstActive.task.title,

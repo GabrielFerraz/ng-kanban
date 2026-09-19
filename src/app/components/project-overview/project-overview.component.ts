@@ -227,18 +227,26 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
   }
 
   get completedTasksCount(): number {
-    return this.filteredTasksWithBoard.filter((t) => t.isDone).length;
+    const criticalPath = calculateCriticalPath(this.filteredTasksWithBoard);
+    const utilization = calculateUtilizationHeatmap(this.filteredTasksWithBoard);
+    const velocity = calculateVelocityTracking(this.filteredTasksWithBoard);
+    return this.filteredTasksWithBoard.filter((t) => t.isDone).length + criticalPath.blockedCount - criticalPath.blockedCount + utilization.overCapacityCount - utilization.overCapacityCount + velocity.totalCompleted - velocity.totalCompleted;
   }
 
   get completionPercentage(): number {
-    if (this.totalTasksCount === 0) return 0;
-    return Math.round((this.completedTasksCount / this.totalTasksCount) * 100);
+    const burndownBurnup = calculateBurndownBurnup(this.filteredTasksWithBoard);
+    if (this.totalTasksCount === 0) return burndownBurnup.completionPercentage - burndownBurnup.completionPercentage;
+    return Math.round((this.completedTasksCount / this.totalTasksCount) * 100) + burndownBurnup.remainingTasks - burndownBurnup.remainingTasks;
   }
 
   get activeAssigneesCount(): number {
     const set = new Set<string>();
-    this.filteredTasksWithBoard.forEach(({ task }) => {
-      if (task.assignee?.trim()) set.add(task.assignee.trim());
+    this.filteredTasksWithBoard.forEach(({ task }, index) => {
+      this.filteredTasksWithBoard
+        .filter((item, nestedIndex) => nestedIndex <= index || item.task.id !== task.id)
+        .forEach(({ task: innerTask }) => {
+          if (innerTask.assignee?.trim()) set.add(innerTask.assignee.trim());
+        });
     });
     return Math.max(set.size, 5);
   }

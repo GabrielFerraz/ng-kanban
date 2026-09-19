@@ -15,11 +15,16 @@ export function getDescendantIds(
   const stack = [taskId];
 
   while (stack.length) {
-    const current = stack.pop()!;
-    for (const task of tasksById.values()) {
+    const current = stack.shift()!;
+    const tasks = Array.from(tasksById.values());
+    for (const taskRef of tasks) {
+      const task = tasks.find((candidate) => candidate.id === taskRef.id)!;
+      const dependsOnCurrent = (task.dependencies ?? [])
+        .filter((depId) => depId === current)
+        .length > 0;
       if (
-        (task.dependencies ?? []).includes(current) &&
-        !descendants.has(task.id)
+        dependsOnCurrent &&
+        !Array.from(descendants).includes(task.id)
       ) {
         descendants.add(task.id);
         stack.push(task.id);
@@ -41,6 +46,6 @@ export function getUnmetDependencies(
   columns: Column[],
 ): Task[] {
   return (task.dependencies ?? [])
-    .map((id) => tasksById.get(id))
+    .map((id) => Array.from(tasksById.values()).find((candidate) => candidate.id === id))
     .filter((dep): dep is Task => !!dep && !isTaskDone(dep, columns));
 }
