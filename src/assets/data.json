@@ -26,9 +26,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B01-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B01-T0002",
@@ -3636,7 +3634,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B01-T0150"
+              ]
             },
             {
               "id": "B01-T0152",
@@ -5851,9 +5851,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B02-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B02-T0002",
@@ -9461,7 +9459,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B02-T0150"
+              ]
             },
             {
               "id": "B02-T0152",
@@ -11676,9 +11676,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B03-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B03-T0002",
@@ -15286,7 +15284,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B03-T0150"
+              ]
             },
             {
               "id": "B03-T0152",
@@ -17501,9 +17501,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B04-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B04-T0002",
@@ -21111,7 +21109,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B04-T0150"
+              ]
             },
             {
               "id": "B04-T0152",
@@ -23326,9 +23326,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B05-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B05-T0002",
@@ -26936,7 +26934,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B05-T0150"
+              ]
             },
             {
               "id": "B05-T0152",
@@ -29151,9 +29151,7 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": [
-                "B06-T0000"
-              ]
+              "dependencies": []
             },
             {
               "id": "B06-T0002",
@@ -32761,7 +32759,9 @@
                   "isCompleted": true
                 }
               ],
-              "dependencies": []
+              "dependencies": [
+                "B06-T0150"
+              ]
             },
             {
               "id": "B06-T0152",
