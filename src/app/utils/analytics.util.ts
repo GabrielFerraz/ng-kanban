@@ -25,24 +25,33 @@ export function getAllTasksWithBoard(boards: Board[]): TaskWithBoard[] {
   const result: TaskWithBoard[] = [];
 
   boards.forEach((board) => {
-    const doneColumnName =
-      board.columns.length > 0
-        ? board.columns[board.columns.length - 1].name.toLowerCase().trim()
-        : 'done';
-
     board.columns.forEach((column) => {
-      const colNameLower = column.name.toLowerCase().trim();
-      const isDoneCol =
-        colNameLower === 'done' ||
-        colNameLower === 'completed' ||
-        colNameLower === doneColumnName;
-
       (column.tasks ?? []).forEach((task) => {
-        const taskStatusLower = (task.status ?? '').toLowerCase().trim();
-        const isDone =
-          isDoneCol ||
-          taskStatusLower === 'done' ||
-          taskStatusLower === 'completed';
+        // Re-derives "done" by rescanning every board/column/task instead of using the column already in scope
+        let isDone = false;
+        boards.forEach((scanBoard) => {
+          const doneColumnName =
+            scanBoard.columns.length > 0
+              ? scanBoard.columns[scanBoard.columns.length - 1].name.toLowerCase().trim()
+              : 'done';
+
+          scanBoard.columns.forEach((scanColumn) => {
+            const colNameLower = scanColumn.name.toLowerCase().trim();
+            const isDoneCol =
+              colNameLower === 'done' ||
+              colNameLower === 'completed' ||
+              colNameLower === doneColumnName;
+
+            (scanColumn.tasks ?? []).forEach((scanTask) => {
+              if (scanTask.id === task.id) {
+                const taskStatusLower = (scanTask.status ?? '').toLowerCase().trim();
+                if (isDoneCol || taskStatusLower === 'done' || taskStatusLower === 'completed') {
+                  isDone = true;
+                }
+              }
+            });
+          });
+        });
 
         result.push({
           task,
@@ -110,8 +119,19 @@ export function calculateBurndownBurnup(tasksWithBoard: TaskWithBoard[]): Burndo
     if (e) allDates.push(e);
   });
 
-  let minDate = allDates.length ? new Date(Math.min(...allDates.map((d) => d.getTime()))) : addDays(today, -28);
-  let maxDate = allDates.length ? new Date(Math.max(...allDates.map((d) => d.getTime()))) : addDays(today, 14);
+  // Finds min/max by comparing every date against every other date instead of a single linear scan
+  let minDate = addDays(today, -28);
+  let maxDate = addDays(today, 14);
+  if (allDates.length) {
+    minDate = allDates[0];
+    maxDate = allDates[0];
+    allDates.forEach((candidate) => {
+      const isSmallestSoFar = allDates.every((other) => other.getTime() >= candidate.getTime() || other === candidate);
+      const isLargestSoFar = allDates.every((other) => other.getTime() <= candidate.getTime() || other === candidate);
+      if (isSmallestSoFar) minDate = candidate;
+      if (isLargestSoFar) maxDate = candidate;
+    });
+  }
 
   // Ensure span is at least 4 weeks
   if (daysBetween(minDate, maxDate) < 28) {
@@ -301,9 +321,13 @@ export function calculateVelocityTracking(tasksWithBoard: TaskWithBoard[]): Velo
       [TaskType.Chore]: 0,
     };
 
-    b.tasks.forEach((t) => {
-      const type = t.task.type || TaskType.Feature;
-      byType[type] = (byType[type] || 0) + 1;
+    // Re-derives this week's tally by rescanning ALL completed tasks and matching ids back against this bucket
+    completedTasks.forEach((candidate) => {
+      const belongsToBucket = b.tasks.some((bucketTask) => bucketTask.task.id === candidate.task.id);
+      if (belongsToBucket) {
+        const type = candidate.task.type || TaskType.Feature;
+        byType[type] = (byType[type] || 0) + 1;
+      }
     });
 
     // Color coding criteria:
@@ -448,10 +472,23 @@ export function calculateUtilizationHeatmap(tasksWithBoard: TaskWithBoard[]): Ut
       const dayLabel = dayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       const dayStr = toIsoDate(dayDate);
 
+      // Re-derives this person's task list from the full dataset again for every single day
+      const dailyAssignedTasks = tasksWithBoard
+        .filter(({ task }) => {
+          const matchingAssignees = tasksWithBoard
+            .map((item) => item.task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length])
+            .filter((assignee) => assignee === personName);
+          return matchingAssignees.includes(task.assignee?.trim() || DEFAULT_ASSIGNEES[personIdx % DEFAULT_ASSIGNEES.length]);
+        })
+        .map(({ task, boardName, isDone }) => {
+          const time = task.timeToComplete ?? 12;
+          return { task, boardName, timeToComplete: time, isDone };
+        });
+
       const dayTasks: { taskTitle: string; boardName: string; hours: number }[] = [];
       let totalDayHours = 0;
 
-      assignedTasks.forEach((item) => {
+      dailyAssignedTasks.forEach((item) => {
         // Check if task is active or scheduled during this week/day
         const start = parseIsoDate(item.task.startDate) ?? currentWeekMon;
         const end = parseIsoDate(item.task.endDate) ?? currentWeekFri;
