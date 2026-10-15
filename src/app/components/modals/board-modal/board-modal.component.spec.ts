@@ -67,7 +67,7 @@ describe('BoardModalComponent', () => {
   });
 
   it('submit preserves existing task lists when editing a board', () => {
-    const existingTask = { id: 'TASK-1', type: 'Feature', title: 'X', description: '', status: 'Todo', startDate: '', endDate: '', subtasks: [] } as Task;
+    const existingTask = { id: 'TASK-1', type: 'Feature', title: 'X', description: '', status: 'Todo', startDate: '', endDate: '', subtasks: [], dependencies: [] } as Task;
     configure({ name: 'Roadmap', columns: [{ name: 'Backlog', tasks: [existingTask] }] });
 
     component.submit();
