@@ -13,7 +13,7 @@ describe('BurndownBurnupComponent', () => {
 
     fixture = TestBed.createComponent(BurndownBurnupComponent);
     component = fixture.componentInstance;
-    component.tasksWithBoard = [
+    fixture.componentRef.setInput('tasksWithBoard', [
       {
         task: {
           id: 'T-1',
@@ -29,7 +29,7 @@ describe('BurndownBurnupComponent', () => {
         boardName: 'Launch',
         isDone: true,
       },
-    ];
+    ]);
     fixture.detectChanges();
   });
 
@@ -39,12 +39,12 @@ describe('BurndownBurnupComponent', () => {
 
   it('switches chart view modes', () => {
     component.setViewMode('burndown');
-    expect(component.viewMode).toBe('burndown');
+    expect(component.viewMode()).toBe('burndown');
 
     component.setViewMode('burnup');
-    expect(component.viewMode).toBe('burnup');
+    expect(component.viewMode()).toBe('burnup');
 
     component.setViewMode('both');
-    expect(component.viewMode).toBe('both');
+    expect(component.viewMode()).toBe('both');
   });
 });

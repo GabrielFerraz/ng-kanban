@@ -2,9 +2,9 @@ import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  input,
+  output,
+  signal,
 } from '@angular/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { Board } from '../../models/board.model';
@@ -18,29 +18,29 @@ import { Board } from '../../models/board.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
-  @Input() opened!: boolean;
-  @Input() activeBoard!: Board | null;
-  @Input() boards!: Board[];
-  @Input() darkMode!: boolean;
-  @Input() isOverview = false;
+  opened = input.required<boolean>();
+  activeBoard = input.required<Board | null>();
+  boards = input.required<Board[]>();
+  darkMode = input.required<boolean>();
+  isOverview = input(false);
 
-  @Output() boardSelect = new EventEmitter<number>();
-  @Output() boardAdd = new EventEmitter<void>();
-  @Output() boardEdit = new EventEmitter<void>();
-  @Output() boardDelete = new EventEmitter<void>();
-  @Output() boardExport = new EventEmitter<void>();
-  @Output() taskAdd = new EventEmitter<void>();
-  @Output() overviewSelect = new EventEmitter<void>();
+  boardSelect = output<number>();
+  boardAdd = output<void>();
+  boardEdit = output<void>();
+  boardDelete = output<void>();
+  boardExport = output<void>();
+  taskAdd = output<void>();
+  overviewSelect = output<void>();
 
-  sidebarShown = false;
+  sidebarShown = signal(false);
 
   selectBoard(boardIdx: number): void {
-    this.sidebarShown = false;
+    this.sidebarShown.set(false);
     this.boardSelect.emit(boardIdx);
   }
 
   selectOverview(): void {
-    this.sidebarShown = false;
+    this.sidebarShown.set(false);
     this.overviewSelect.emit();
   }
 
@@ -65,11 +65,11 @@ export class NavbarComponent {
   }
 
   open(): void {
-    this.sidebarShown = true;
+    this.sidebarShown.set(true);
   }
 
   close(): void {
-    this.sidebarShown = false;
+    this.sidebarShown.set(false);
   }
 
   stopPropagation(e: Event) {

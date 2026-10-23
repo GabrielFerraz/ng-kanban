@@ -13,7 +13,7 @@ describe('VelocityTrackingComponent', () => {
 
     fixture = TestBed.createComponent(VelocityTrackingComponent);
     component = fixture.componentInstance;
-    component.tasksWithBoard = [
+    fixture.componentRef.setInput('tasksWithBoard', [
       {
         task: {
           id: 'T-1',
@@ -29,7 +29,7 @@ describe('VelocityTrackingComponent', () => {
         boardName: 'Launch',
         isDone: true,
       },
-    ];
+    ]);
     fixture.detectChanges();
   });
 
@@ -38,15 +38,7 @@ describe('VelocityTrackingComponent', () => {
   });
 
   it('calculates velocity and displays consistency', () => {
-    component.ngOnChanges({
-      tasksWithBoard: {
-        previousValue: [],
-        currentValue: component.tasksWithBoard,
-        firstChange: false,
-        isFirstChange: () => false,
-      },
-    });
-    expect(component.velocity).toBeTruthy();
-    expect(component.velocity?.weeks.length).toBe(6);
+    expect(component.velocity()).toBeTruthy();
+    expect(component.velocity().weeks.length).toBe(6);
   });
 });

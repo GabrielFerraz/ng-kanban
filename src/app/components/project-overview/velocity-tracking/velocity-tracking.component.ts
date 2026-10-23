@@ -2,14 +2,13 @@ import { CommonModule, NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  OnChanges,
-  SimpleChanges,
+  computed,
+  input,
+  signal,
 } from '@angular/core';
 import { TASK_TYPE_COLORS, TaskType } from '../../../models/task.model';
 import {
   TaskWithBoard,
-  VelocityResult,
   VelocityWeek,
   calculateVelocityTracking,
 } from '../../../utils/analytics.util';
@@ -22,7 +21,7 @@ import {
   styleUrl: './velocity-tracking.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VelocityTrackingComponent implements OnChanges {
+export class VelocityTrackingComponent {
   readonly Math = Math;
   readonly taskTypeColors = TASK_TYPE_COLORS;
   readonly taskTypes = [
@@ -32,20 +31,14 @@ export class VelocityTrackingComponent implements OnChanges {
     TaskType.Chore,
   ];
 
-  @Input() tasksWithBoard: TaskWithBoard[] = [];
-  @Input() darkMode = false;
+  tasksWithBoard = input<TaskWithBoard[]>([]);
+  darkMode = input(false);
 
-  velocity: VelocityResult | null = null;
-  hoveredWeek: VelocityWeek | null = null;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tasksWithBoard']) {
-      this.velocity = calculateVelocityTracking(this.tasksWithBoard);
-    }
-  }
+  velocity = computed(() => calculateVelocityTracking(this.tasksWithBoard()));
+  hoveredWeek = signal<VelocityWeek | null>(null);
 
   onWeekHover(week: VelocityWeek | null): void {
-    this.hoveredWeek = week;
+    this.hoveredWeek.set(week);
   }
 
   getBarHeight(count: number, maxCount: number, maxHeight = 160): number {

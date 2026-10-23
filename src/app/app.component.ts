@@ -5,6 +5,7 @@ import {
   inject,
   OnInit,
   PLATFORM_ID,
+  signal,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, RouterOutlet } from '@angular/router';
@@ -49,9 +50,9 @@ export class AppComponent implements OnInit {
   private location = inject(Location);
   private router = inject(Router);
 
-  darkMode = false;
-  isSidebarOpen = true;
-  isOverview = false;
+  darkMode = signal(false);
+  isSidebarOpen = signal(true);
+  isOverview = signal(false);
 
   boards = this.boardDataService.boards;
   activeBoard = this.boardDataService.activeBoard;
@@ -63,37 +64,37 @@ export class AppComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       const path = window.location.pathname;
       if (path.includes('/overview')) {
-        this.isOverview = true;
+        this.isOverview.set(true);
       }
     }
   }
 
   selectOverview(): void {
-    this.isOverview = true;
+    this.isOverview.set(true);
     this.location.go('/overview');
   }
 
   selectBoard(boardIdx: number): void {
-    this.isOverview = false;
+    this.isOverview.set(false);
     this.boardDataService.selectBoard(boardIdx);
     this.location.go('/');
   }
 
   toggleDarkMode(enableDarkMode: boolean) {
-    this.darkMode = enableDarkMode;
+    this.darkMode.set(enableDarkMode);
   }
 
   openSideBar(): void {
-    this.isSidebarOpen = true;
+    this.isSidebarOpen.set(true);
   }
 
   closeSidebar() {
-    this.isSidebarOpen = false;
+    this.isSidebarOpen.set(false);
   }
 
   addBoard(): void {
     const dialogRef = this.dialog.open(BoardModalComponent, {
-      data: { board: { name: '', columns: [] }, darkMode: this.darkMode },
+      data: { board: { name: '', columns: [] }, darkMode: this.darkMode() },
     });
 
     dialogRef.afterClosed().subscribe((res: Board) => {
@@ -102,7 +103,7 @@ export class AppComponent implements OnInit {
       }
 
       this.boardDataService.addBoard(res);
-      this.isOverview = false;
+      this.isOverview.set(false);
     });
   }
 
@@ -110,7 +111,7 @@ export class AppComponent implements OnInit {
     const dialogRef = this.dialog.open(BoardModalComponent, {
       data: {
         board: this.activeBoard() ? this.activeBoard() : { name: '', columns: [] },
-        darkMode: this.darkMode,
+        darkMode: this.darkMode(),
       },
     });
 
@@ -132,7 +133,7 @@ export class AppComponent implements OnInit {
       data: {
         name: this.activeBoard()?.name,
         isBoard: true,
-        darkMode: this.darkMode,
+        darkMode: this.darkMode(),
       },
     });
 
@@ -164,7 +165,7 @@ export class AppComponent implements OnInit {
     const dialogRef = this.dialog.open(TaskModalComponent, {
       data: {
         editMode: false,
-        darkMode: this.darkMode,
+        darkMode: this.darkMode(),
         columns: this.activeBoard()?.columns,
       },
     });
@@ -183,7 +184,7 @@ export class AppComponent implements OnInit {
       data: {
         task: editTask,
         editMode: true,
-        darkMode: this.darkMode,
+        darkMode: this.darkMode(),
         columns: this.activeBoard()?.columns,
       },
     });
@@ -206,7 +207,7 @@ export class AppComponent implements OnInit {
       data: {
         name: deleteTask.title,
         isBoard: false,
-        darkMode: this.darkMode,
+        darkMode: this.darkMode(),
       },
     });
 

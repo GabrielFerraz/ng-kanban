@@ -13,7 +13,7 @@ describe('UtilizationHeatmapComponent', () => {
 
     fixture = TestBed.createComponent(UtilizationHeatmapComponent);
     component = fixture.componentInstance;
-    component.tasksWithBoard = [
+    fixture.componentRef.setInput('tasksWithBoard', [
       {
         task: {
           id: 'T-1',
@@ -31,7 +31,7 @@ describe('UtilizationHeatmapComponent', () => {
         boardName: 'Launch',
         isDone: false,
       },
-    ];
+    ]);
     fixture.detectChanges();
   });
 
@@ -40,10 +40,10 @@ describe('UtilizationHeatmapComponent', () => {
   });
 
   it('toggles person tasks accordion', () => {
-    expect(component.expandedPersonName).toBeNull();
+    expect(component.expandedPersonName()).toBeNull();
     component.togglePersonExpand('Alex Morgan');
-    expect(component.expandedPersonName).toBe('Alex Morgan');
+    expect(component.expandedPersonName()).toBe('Alex Morgan');
     component.togglePersonExpand('Alex Morgan');
-    expect(component.expandedPersonName).toBeNull();
+    expect(component.expandedPersonName()).toBeNull();
   });
 });

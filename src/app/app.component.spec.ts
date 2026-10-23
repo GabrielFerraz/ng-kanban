@@ -42,7 +42,7 @@ describe('AppComponent', () => {
 
     fixture.componentInstance.toggleDarkMode(true);
 
-    expect(fixture.componentInstance.darkMode).toBeTrue();
+    expect(fixture.componentInstance.darkMode()).toBeTrue();
   });
 
   it('opens and closes the sidebar', () => {
@@ -51,10 +51,10 @@ describe('AppComponent', () => {
     httpMock.expectOne('assets/data.json').flush({ boards: [] });
 
     fixture.componentInstance.closeSidebar();
-    expect(fixture.componentInstance.isSidebarOpen).toBeFalse();
+    expect(fixture.componentInstance.isSidebarOpen()).toBeFalse();
 
     fixture.componentInstance.openSideBar();
-    expect(fixture.componentInstance.isSidebarOpen).toBeTrue();
+    expect(fixture.componentInstance.isSidebarOpen()).toBeTrue();
   });
 
   it('selects a board by index', () => {

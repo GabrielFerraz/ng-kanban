@@ -17,12 +17,12 @@
         <label for="board-filter" class="text-sm font-bold text-grey-medium">Scope:</label>
         <select
           id="board-filter"
-          [ngModel]="selectedBoardFilter"
+          [ngModel]="selectedBoardFilter()"
           (ngModelChange)="onFilterChange($event)"
           class="h-12 rounded-lg border border-lines-light bg-white px-1.6 text-sm font-bold text-black focus:border-purple focus:ring-0 dark:border-lines-dark dark:bg-grey-dark dark:text-white"
         >
-          <option value="all">★ All Boards Combined ({{ totalBoardsCount }})</option>
-          @for (board of boards; track board.name) {
+          <option value="all">★ All Boards Combined ({{ totalBoardsCount() }})</option>
+          @for (board of boards(); track board.name) {
             <option [value]="board.name">{{ board.name }}</option>
           }
         </select>
@@ -66,7 +66,7 @@
       </div>
       <div>
         <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Total Boards</div>
-        <div class="text-lg font-bold text-black dark:text-white">{{ totalBoardsCount }} Boards</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ totalBoardsCount() }} Boards</div>
       </div>
     </div>
 
@@ -78,7 +78,7 @@
       </div>
       <div>
         <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Total Tasks</div>
-        <div class="text-lg font-bold text-black dark:text-white">{{ totalTasksCount }} Tasks</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ totalTasksCount() }} Tasks</div>
       </div>
     </div>
 
@@ -91,7 +91,7 @@
       <div>
         <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Completed Work</div>
         <div class="text-lg font-bold text-[#67e2ae]">
-          {{ completedTasksCount }} <span class="text-sm font-normal text-grey-medium">({{ completionPercentage }}%)</span>
+          {{ completedTasksCount() }} <span class="text-sm font-normal text-grey-medium">({{ completionPercentage() }}%)</span>
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@
       </div>
       <div>
         <div class="text-xs font-bold uppercase tracking-wider text-grey-medium">Active Team</div>
-        <div class="text-lg font-bold text-black dark:text-white">{{ activeAssigneesCount }} Members</div>
+        <div class="text-lg font-bold text-black dark:text-white">{{ activeAssigneesCount() }} Members</div>
       </div>
     </div>
   </div>
@@ -125,7 +125,7 @@
     (cdkDropListDropped)="onWidgetDrop($event)"
     class="widgets-container flex flex-col gap-3.2"
   >
-    @for (widget of widgets; track widget.id) {
+    @for (widget of widgets(); track widget.id) {
       <div
         cdkDrag
         class="widget-card overflow-hidden rounded-2xl border border-lines-light bg-white shadow-sm duration-200 hover:shadow-md dark:border-lines-dark dark:bg-grey-dark"
@@ -186,26 +186,25 @@
             @switch (widget.id) {
               @case ('burndown-burnup') {
                 <app-burndown-burnup
-                  [tasksWithBoard]="filteredTasksWithBoard"
-                  [darkMode]="darkMode"
+                  [tasksWithBoard]="filteredTasksWithBoard()"
+                  [darkMode]="darkMode()"
                 ></app-burndown-burnup>
               }
               @case ('velocity-tracking') {
                 <app-velocity-tracking
-                  [tasksWithBoard]="filteredTasksWithBoard"
-                  [darkMode]="darkMode"
+                  [tasksWithBoard]="filteredTasksWithBoard()"
+                  [darkMode]="darkMode()"
                 ></app-velocity-tracking>
               }
               @case ('utilization-heatmap') {
                 <app-utilization-heatmap
-                  [tasksWithBoard]="filteredTasksWithBoard"
-                  [darkMode]="darkMode"
+                  [tasksWithBoard]="filteredTasksWithBoard()"
+                  [darkMode]="darkMode()"
                 ></app-utilization-heatmap>
               }
               @case ('critical-path') {
                 <app-critical-path
-                  [tasksWithBoard]="filteredTasksWithBoard"
-                  [darkMode]="darkMode"
+                  [tasksWithBoard]="filteredTasksWithBoard()"
                 ></app-critical-path>
               }
             }

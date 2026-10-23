@@ -2,9 +2,8 @@ import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  input,
+  output,
 } from '@angular/core';
 import { Board } from '../../models/board.model';
 import { ThemeTogglerComponent } from './theme-toggler/theme-toggler.component';
@@ -18,15 +17,15 @@ import { ThemeTogglerComponent } from './theme-toggler/theme-toggler.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  @Input() boards: Board[] = [];
-  @Input() activeBoard!: Board | null;
-  @Input() opened!: boolean;
-  @Input() isOverview = false;
-  @Output() closeSidebar = new EventEmitter<void>();
-  @Output() enableDarkMode = new EventEmitter<boolean>();
-  @Output() add = new EventEmitter<void>();
-  @Output() selected = new EventEmitter<number>();
-  @Output() overviewSelected = new EventEmitter<void>();
+  boards = input<Board[]>([]);
+  activeBoard = input.required<Board | null>();
+  opened = input.required<boolean>();
+  isOverview = input(false);
+  closeSidebar = output<void>();
+  enableDarkMode = output<boolean>();
+  add = output<void>();
+  selected = output<number>();
+  overviewSelected = output<void>();
 
   collapseSidebar(): void {
     this.closeSidebar.emit();

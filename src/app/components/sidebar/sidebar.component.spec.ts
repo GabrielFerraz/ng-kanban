@@ -19,9 +19,9 @@ describe('SidebarComponent', () => {
 
     fixture = TestBed.createComponent(SidebarComponent);
     component = fixture.componentInstance;
-    component.boards = boards;
-    component.activeBoard = boards[0];
-    component.opened = true;
+    fixture.componentRef.setInput('boards', boards);
+    fixture.componentRef.setInput('activeBoard', boards[0]);
+    fixture.componentRef.setInput('opened', true);
     fixture.detectChanges();
   });
 

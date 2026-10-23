@@ -3,7 +3,7 @@
 >
   <figure
     class="flex w-[21rem] items-center border-r border-lines-light px-2.4 dark:border-lines-dark"
-    [ngClass]="{ hidden: opened }"
+    [ngClass]="{ hidden: opened() }"
   >
     <img
       src="assets/images/logo-dark.svg"
@@ -21,24 +21,24 @@
       <h1
         class="font-bold text-black dark:text-white sm:text-lx sm:leading-lx lg:text-xl lg:leading-xl"
       >
-        {{ isOverview ? 'Project Overview & Analytics' : activeBoard?.name }}
+        {{ isOverview() ? 'Project Overview & Analytics' : activeBoard()?.name }}
       </h1>
-      @if (isOverview) {
+      @if (isOverview()) {
         <p class="text-xs font-semibold text-grey-medium">Cross-board analytics & project health</p>
       }
     </div>
 
-    @if (!isOverview) {
+    @if (!isOverview()) {
       <div class="flex gap-2.4 sm:pt-1.6 lg:pt-8">
         <button
-          [disabled]="!activeBoard?.columns?.length"
+          [disabled]="!activeBoard()?.columns?.length"
           (click)="addTask()"
           class="btn-primary btn-lg w-[16.4rem]"
         >
           + Add New Task
         </button>
         <button
-          [disabled]="!activeBoard?.name"
+          [disabled]="!activeBoard()?.name"
           [matMenuTriggerFor]="menu"
           class="self-center"
         >
@@ -62,7 +62,7 @@
   <h1
     class="board-name mr-0.8 text-lg font-bold leading-lg text-black dark:text-white"
   >
-    {{ isOverview ? 'Project Overview' : activeBoard?.name }}
+    {{ isOverview() ? 'Project Overview' : activeBoard()?.name }}
   </h1>
   <button
     type="button"
@@ -71,22 +71,22 @@
     (menuClosed)="close()"
     (menuOpened)="open()"
   >
-    @if (!sidebarShown) {
+    @if (!sidebarShown()) {
       <img src="assets/images/icon-chevron-down.svg" alt="arrow-down" />
     }
-    @if (sidebarShown) {
+    @if (sidebarShown()) {
       <img src="assets/images/icon-chevron-up.svg" alt="arrow-up" />
     }
   </button>
-  @if (!isOverview) {
+  @if (!isOverview()) {
     <button
-      [disabled]="!activeBoard?.columns?.length"
+      [disabled]="!activeBoard()?.columns?.length"
       (click)="addTask()"
       class="btn-primary btn-mb w-4.8"
     >
       <img src="assets/images/icon-add-task-mobile.svg" alt="add" />
     </button>
-    <button [disabled]="!activeBoard?.name" [matMenuTriggerFor]="menu">
+    <button [disabled]="!activeBoard()?.name" [matMenuTriggerFor]="menu">
       <img
         src="assets/images/icon-vertical-ellipsis.svg"
         alt="options"
@@ -98,7 +98,7 @@
 
 <mat-menu #menu="matMenu" class="board-options" [backdropClass]="'menu'">
   <div
-    [ngClass]="{ 'bg-grey-vdark': darkMode, 'bg-white': !darkMode }"
+    [ngClass]="{ 'bg-grey-vdark': darkMode(), 'bg-white': !darkMode() }"
     class="flex w-[19.2rem] flex-col gap-1.6 rounded-xl p-1.6"
   >
     <button
@@ -124,14 +124,14 @@
 
 <mat-menu #sidebar="matMenu" [backdropClass]="'mobile-menu'">
   <div
-    [ngClass]="{ 'bg-grey-dark': darkMode, 'bg-white': !darkMode }"
+    [ngClass]="{ 'bg-grey-dark': darkMode(), 'bg-white': !darkMode() }"
     class="flex w-[26.4rem] flex-col gap-1.6 rounded-xl py-1.6"
   >
     <div class="flex w-96 flex-col">
       <!-- Project Overview Link in Mobile Menu -->
       <button
         (click)="selectOverview()"
-        [ngClass]="isOverview ? 'bg-purple text-white' : 'text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white'"
+        [ngClass]="isOverview() ? 'bg-purple text-white' : 'text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white'"
         class="flex h-4.8 items-center rounded-r-full pl-2.4 font-bold"
       >
         <svg class="mr-1.2 h-1.6 w-1.6 fill-current" viewBox="0 0 24 24">
@@ -143,10 +143,10 @@
       <h2
         class="mb-8 mt-4 pl-2.4 text-sm font-bold uppercase leading-sm tracking-sm text-grey-medium"
       >
-        All boards ({{ boards.length }})
+        All boards ({{ boards().length }})
       </h2>
-      @for (board of boards; track board.name; let i = $index) {
-        @if (!isOverview && board.name === activeBoard?.name) {
+      @for (board of boards(); track board.name; let i = $index) {
+        @if (!isOverview() && board.name === activeBoard()?.name) {
           <button
             class="flex h-4.8 items-center rounded-r-full bg-purple pl-2.4 text-white"
           >
@@ -192,7 +192,7 @@
     </div>
     <div class="pl-1.6">
       <div
-        [ngClass]="{ 'bg-grey-light': !darkMode, 'bg-grey-vdark': darkMode }"
+        [ngClass]="{ 'bg-grey-light': !darkMode(), 'bg-grey-vdark': darkMode() }"
         class="flex h-4.8 w-[23.5rem] items-center justify-center rounded-lg"
       >
         <img
@@ -209,7 +209,7 @@
         >
           <label
             for="switch"
-            [ngClass]="{ move: darkMode }"
+            [ngClass]="{ move: darkMode() }"
             class="relative h-8 w-16 cursor-pointer rounded-2xl bg-purple p-1 hover:bg-purple-light"
           ></label>
         </div>

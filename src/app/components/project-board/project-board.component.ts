@@ -1,5 +1,5 @@
 import { NgClass, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnChanges, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { TaskCardComponent } from './task-card/task-card.component';
 import {
@@ -32,41 +32,42 @@ export type BoardTab = 'board' | 'gantt';
   styleUrl: './project-board.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectBoardComponent implements OnChanges {
+export class ProjectBoardComponent {
   private dialog = inject(MatDialog);
 
   colors = ['#49C4E5', '#8471F2', '#67E2AE'];
-  activeTab: BoardTab = 'board';
-  boardTasks: Task[] = [];
-  blockedTaskIds = new Set<string>();
+  activeTab = signal<BoardTab>('board');
 
-  @Input() activeBoard!: Board | null;
-  @Input() darkMode = false;
-  @Output() columnAdd = new EventEmitter<void>();
-  @Output() boardEdit = new EventEmitter<Board>();
-  @Output() taskUpdate = new EventEmitter<{ task: Task; columnName: string }>();
-  @Output() taskUpdateModal = new EventEmitter<Task>();
-  @Output() taskDeleteModal = new EventEmitter<Task>();
+  activeBoard = input.required<Board | null>();
+  darkMode = input(false);
+  columnAdd = output<void>();
+  boardEdit = output<Board>();
+  taskUpdate = output<{ task: Task; columnName: string }>();
+  taskUpdateModal = output<Task>();
+  taskDeleteModal = output<Task>();
 
+  boardTasks = computed<Task[]>(() =>
+    (this.activeBoard()?.columns ?? []).flatMap((column) => column.tasks ?? []),
+  );
 
-  ngOnChanges(): void {
-    this.boardTasks = (this.activeBoard?.columns ?? []).flatMap((column) => column.tasks ?? []);
-
-    const tasksById = buildTaskMap(this.boardTasks);
-    const columns = this.activeBoard?.columns ?? [];
-    this.blockedTaskIds = new Set(
-      this.boardTasks
+  blockedTaskIds = computed(() => {
+    const boardTasks = this.boardTasks();
+    const tasksById = buildTaskMap(boardTasks);
+    const columns = this.activeBoard()?.columns ?? [];
+    return new Set(
+      boardTasks
         .filter((task) => getUnmetDependencies(task, tasksById, columns).length > 0)
         .map((task) => task.id),
     );
-  }
+  });
 
   selectTab(tab: BoardTab): void {
-    this.activeTab = tab;
+    this.activeTab.set(tab);
   }
 
   drop(event: CdkDragDrop<Task[]>) {
-    if (this.activeBoard) {
+    const activeBoard = this.activeBoard();
+    if (activeBoard) {
       if (event.previousContainer === event.container) {
         moveItemInArray(
           event.container.data,
@@ -74,7 +75,7 @@ export class ProjectBoardComponent implements OnChanges {
           event.currentIndex,
         );
 
-        this.boardEdit.emit(this.activeBoard);
+        this.boardEdit.emit(activeBoard);
       } else {
         transferArrayItem(
           event.previousContainer.data,
@@ -83,7 +84,7 @@ export class ProjectBoardComponent implements OnChanges {
           event.currentIndex,
         );
 
-        this.boardEdit.emit(this.activeBoard);
+        this.boardEdit.emit(activeBoard);
       }
     }
   }
@@ -96,8 +97,8 @@ export class ProjectBoardComponent implements OnChanges {
     const dialogRef = this.dialog.open(ViewTaskModalComponent, {
       data: {
         task: readTask,
-        columns: this.activeBoard?.columns,
-        darkMode: this.darkMode,
+        columns: this.activeBoard()?.columns,
+        darkMode: this.darkMode(),
       },
     });
 
@@ -109,7 +110,7 @@ export class ProjectBoardComponent implements OnChanges {
       } else {
         const updateTask = {
           task: dialogRef.componentInstance.data.task,
-          columnName: dialogRef.componentInstance.activeStatus.name,
+          columnName: dialogRef.componentInstance.activeStatus().name,
         };
 
         this.taskUpdate.emit(updateTask);

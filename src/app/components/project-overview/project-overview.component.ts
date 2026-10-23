@@ -11,16 +11,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   Inject,
-  Input,
-  OnChanges,
   OnInit,
   PLATFORM_ID,
-  SimpleChanges,
+  computed,
+  input,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Board } from '../../models/board.model';
 import {
-  TaskWithBoard,
   calculateBurndownBurnup,
   calculateUtilizationHeatmap,
   calculateVelocityTracking,
@@ -99,94 +98,85 @@ const STORAGE_KEY = 'kanban_overview_widgets_layout_v1';
   styleUrl: './project-overview.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectOverviewComponent implements OnInit, OnChanges {
-  @Input() boards: Board[] = [];
-  @Input() darkMode = false;
+export class ProjectOverviewComponent implements OnInit {
+  boards = input<Board[]>([]);
+  darkMode = input(false);
 
-  widgets: OverviewWidget[] = [...DEFAULT_WIDGETS];
-  selectedBoardFilter = 'all'; // 'all' or board name
-  allTasksWithBoard: TaskWithBoard[] = [];
-  filteredTasksWithBoard: TaskWithBoard[] = [];
-  totalTasksCount = 0;
-  completedTasksCount = 0;
-  completionPercentage = 0;
-  activeAssigneesCount = 5;
+  widgets = signal<OverviewWidget[]>([...DEFAULT_WIDGETS]);
+  selectedBoardFilter = signal('all'); // 'all' or board name
+
+  allTasksWithBoard = computed(() => getAllTasksWithBoard(this.boards() ?? []));
+
+  filteredTasksWithBoard = computed(() => {
+    const allTasks = this.allTasksWithBoard();
+    const filter = this.selectedBoardFilter();
+    return filter === 'all'
+      ? allTasks
+      : allTasks.filter((item) => item.boardName === filter);
+  });
+
+  totalTasksCount = computed(() => this.filteredTasksWithBoard().length);
+
+  completedTasksCount = computed(
+    () => this.filteredTasksWithBoard().filter(({ isDone }) => isDone).length,
+  );
+
+  completionPercentage = computed(() =>
+    this.totalTasksCount() === 0
+      ? 0
+      : Math.round((this.completedTasksCount() / this.totalTasksCount()) * 100),
+  );
+
+  activeAssigneesCount = computed(() => {
+    const assignees = new Set<string>();
+    this.filteredTasksWithBoard().forEach(({ task }) => {
+      if (task.assignee?.trim()) assignees.add(task.assignee.trim());
+    });
+    return Math.max(assignees.size, 5);
+  });
+
+  totalBoardsCount = computed(() => this.boards()?.length || 0);
 
   constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngOnInit(): void {
     this.loadWidgetOrder();
-    this.processTasks();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['boards']) {
-      this.processTasks();
-    }
-  }
-
-  processTasks(): void {
-    this.allTasksWithBoard = getAllTasksWithBoard(this.boards ?? []);
-    this.applyBoardFilter();
-  }
-
-  applyBoardFilter(): void {
-    if (this.selectedBoardFilter === 'all') {
-      this.filteredTasksWithBoard = this.allTasksWithBoard;
-    } else {
-      this.filteredTasksWithBoard = this.allTasksWithBoard.filter(
-        (item) => item.boardName === this.selectedBoardFilter,
-      );
-    }
-    this.updateSummaryMetrics();
-  }
-
-  private updateSummaryMetrics(): void {
-    const assignees = new Set<string>();
-    let completedTasksCount = 0;
-
-    this.filteredTasksWithBoard.forEach(({ task, isDone }) => {
-      if (isDone) completedTasksCount++;
-      if (task.assignee?.trim()) assignees.add(task.assignee.trim());
-    });
-
-    this.totalTasksCount = this.filteredTasksWithBoard.length;
-    this.completedTasksCount = completedTasksCount;
-    this.completionPercentage = this.totalTasksCount === 0
-      ? 0
-      : Math.round((this.completedTasksCount / this.totalTasksCount) * 100);
-    this.activeAssigneesCount = Math.max(assignees.size, 5);
   }
 
   onFilterChange(newFilter: string): void {
-    this.selectedBoardFilter = newFilter;
-    this.applyBoardFilter();
+    this.selectedBoardFilter.set(newFilter);
   }
 
   onWidgetDrop(event: CdkDragDrop<OverviewWidget[]>): void {
-    moveItemInArray(this.widgets, event.previousIndex, event.currentIndex);
+    const widgets = [...this.widgets()];
+    moveItemInArray(widgets, event.previousIndex, event.currentIndex);
+    this.widgets.set(widgets);
     this.saveWidgetOrder();
   }
 
   toggleCollapse(widget: OverviewWidget): void {
-    widget.collapsed = !widget.collapsed;
+    this.widgets.update((widgets) =>
+      widgets.map((w) => (w === widget ? { ...w, collapsed: !w.collapsed } : w)),
+    );
     this.saveWidgetOrder();
   }
 
   resetLayout(): void {
-    this.widgets = DEFAULT_WIDGETS.map((w) => ({ ...w, collapsed: false }));
+    this.widgets.set(DEFAULT_WIDGETS.map((w) => ({ ...w, collapsed: false })));
     this.saveWidgetOrder();
   }
 
   exportToCsv(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const selectedBoardFilter = this.selectedBoardFilter();
+    const filteredTasksWithBoard = this.filteredTasksWithBoard();
     const csv = buildProjectOverviewCsv({
-      scopeLabel: this.selectedBoardFilter === 'all' ? 'All Boards Combined' : this.selectedBoardFilter,
-      burndownBurnup: calculateBurndownBurnup(this.filteredTasksWithBoard),
-      velocity: calculateVelocityTracking(this.filteredTasksWithBoard),
-      utilization: calculateUtilizationHeatmap(this.filteredTasksWithBoard),
-      criticalPath: calculateCriticalPath(this.filteredTasksWithBoard),
+      scopeLabel: selectedBoardFilter === 'all' ? 'All Boards Combined' : selectedBoardFilter,
+      burndownBurnup: calculateBurndownBurnup(filteredTasksWithBoard),
+      velocity: calculateVelocityTracking(filteredTasksWithBoard),
+      utilization: calculateUtilizationHeatmap(filteredTasksWithBoard),
+      criticalPath: calculateCriticalPath(filteredTasksWithBoard),
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -194,7 +184,7 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
     const link = document.createElement('a');
     const dateStr = new Date().toISOString().slice(0, 10);
     link.href = url;
-    link.download = `project-overview-${this.selectedBoardFilter}-${dateStr}.csv`;
+    link.download = `project-overview-${selectedBoardFilter}-${dateStr}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -219,11 +209,11 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
                 reordered.push({ ...def });
               }
             });
-            this.widgets = reordered;
+            this.widgets.set(reordered);
           }
         }
       } catch {
-        this.widgets = [...DEFAULT_WIDGETS];
+        this.widgets.set([...DEFAULT_WIDGETS]);
       }
     }
   }
@@ -231,17 +221,11 @@ export class ProjectOverviewComponent implements OnInit, OnChanges {
   private saveWidgetOrder(): void {
     if (isPlatformBrowser(this.platformId)) {
       try {
-        const toStore = this.widgets.map((w) => ({ id: w.id, collapsed: w.collapsed }));
+        const toStore = this.widgets().map((w) => ({ id: w.id, collapsed: w.collapsed }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
       } catch {
         // ignore local storage errors
       }
     }
   }
-
-  // Summary header metrics
-  get totalBoardsCount(): number {
-    return this.boards?.length || 0;
-  }
-
 }

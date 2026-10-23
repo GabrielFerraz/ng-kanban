@@ -13,7 +13,7 @@ describe('CriticalPathComponent', () => {
 
     fixture = TestBed.createComponent(CriticalPathComponent);
     component = fixture.componentInstance;
-    component.tasksWithBoard = [
+    fixture.componentRef.setInput('tasksWithBoard', [
       {
         task: {
           id: 'T-1',
@@ -44,7 +44,7 @@ describe('CriticalPathComponent', () => {
         boardName: 'Launch',
         isDone: false,
       },
-    ];
+    ]);
     fixture.detectChanges();
   });
 
@@ -53,16 +53,8 @@ describe('CriticalPathComponent', () => {
   });
 
   it('filters tasks by mode', () => {
-    component.ngOnChanges({
-      tasksWithBoard: {
-        previousValue: [],
-        currentValue: component.tasksWithBoard,
-        firstChange: false,
-        isFirstChange: () => false,
-      },
-    });
     component.setFilter('critical');
-    expect(component.filterMode).toBe('critical');
+    expect(component.filterMode()).toBe('critical');
     expect(component.getFilteredTasks().length).toBeGreaterThan(0);
   });
 });

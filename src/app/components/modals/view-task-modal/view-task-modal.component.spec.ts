@@ -52,11 +52,11 @@ describe('ViewTaskModalComponent', () => {
   });
 
   it('finds the active status column containing the task', () => {
-    expect(component.activeStatus.name).toBe('Todo');
+    expect(component.activeStatus().name).toBe('Todo');
   });
 
   it('computes the type color for the task type', () => {
-    expect(component.typeColor).toBe('#635fc7');
+    expect(component.typeColor()).toBe('#635fc7');
   });
 
   it('calculateCompleted counts completed subtasks', () => {
@@ -82,7 +82,7 @@ describe('ViewTaskModalComponent', () => {
   it('updateStatus changes the task status and active column', () => {
     component.updateStatus({ target: { value: 'Doing' } } as unknown as Event);
     expect(component.data.task.status).toBe('Doing');
-    expect(component.activeStatus.name).toBe('Doing');
+    expect(component.activeStatus().name).toBe('Doing');
   });
 });
 

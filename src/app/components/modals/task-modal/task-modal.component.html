@@ -113,7 +113,7 @@
       <input id="timeToComplete" formControlName="timeToComplete" type="number" min="1" max="200" [ngClass]="{ 'text-white': data.darkMode, 'text-black': !data.darkMode }" class="main-control h-16" />
     </div>
   </div>
-  @if (availableDependencies.length) {
+  @if (availableDependencies().length) {
     <div>
       <h5
         [ngClass]="{
@@ -125,7 +125,7 @@
         Depends On
       </h5>
       <div class="flex max-h-[16rem] flex-col gap-0.8 overflow-y-auto">
-        @for (dep of availableDependencies; track dep.id) {
+        @for (dep of availableDependencies(); track dep.id) {
           <label
             [ngClass]="{
               'bg-grey-vdark': data.darkMode,

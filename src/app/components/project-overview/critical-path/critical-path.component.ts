@@ -2,13 +2,12 @@ import { CommonModule, NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  OnChanges,
-  SimpleChanges,
+  computed,
+  input,
+  signal,
 } from '@angular/core';
 import { TaskWithBoard } from '../../../utils/analytics.util';
 import {
-  CriticalPathResult,
   CriticalPathTaskInfo,
   calculateCriticalPath,
 } from '../../../utils/critical-path.util';
@@ -23,46 +22,39 @@ export type BlockerViewFilter = 'all' | 'blocking' | 'blocked' | 'critical';
   styleUrl: './critical-path.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CriticalPathComponent implements OnChanges {
+export class CriticalPathComponent {
   readonly Math = Math;
 
-  @Input() tasksWithBoard: TaskWithBoard[] = [];
-  @Input() darkMode = false;
+  tasksWithBoard = input<TaskWithBoard[]>([]);
 
-  analysis: CriticalPathResult | null = null;
-  filterMode: BlockerViewFilter = 'all';
-  selectedTaskId: string | null = null;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tasksWithBoard']) {
-      this.analysis = calculateCriticalPath(this.tasksWithBoard);
-    }
-  }
+  analysis = computed(() => calculateCriticalPath(this.tasksWithBoard()));
+  filterMode = signal<BlockerViewFilter>('all');
+  selectedTaskId = signal<string | null>(null);
 
   setFilter(filter: BlockerViewFilter): void {
-    this.filterMode = filter;
+    this.filterMode.set(filter);
   }
 
   selectTask(taskId: string): void {
-    this.selectedTaskId = this.selectedTaskId === taskId ? null : taskId;
+    this.selectedTaskId.update((current) => (current === taskId ? null : taskId));
   }
 
   getFilteredTasks(): CriticalPathTaskInfo[] {
-    if (!this.analysis) return [];
-    switch (this.filterMode) {
+    const analysis = this.analysis();
+    switch (this.filterMode()) {
       case 'critical':
-        return this.analysis.tasks.filter((t) => t.isCritical);
+        return analysis.tasks.filter((t) => t.isCritical);
       case 'blocking':
-        return this.analysis.tasks.filter((t) => t.blockingTaskIds.length > 0);
+        return analysis.tasks.filter((t) => t.blockingTaskIds.length > 0);
       case 'blocked':
-        return this.analysis.tasks.filter((t) => t.blockedByTaskIds.length > 0);
+        return analysis.tasks.filter((t) => t.blockedByTaskIds.length > 0);
       default:
-        return this.analysis.tasks;
+        return analysis.tasks;
     }
   }
 
   getTaskTitle(taskId: string): string {
-    const found = this.analysis?.tasks.find((t) => t.task.id === taskId);
+    const found = this.analysis().tasks.find((t) => t.task.id === taskId);
     return found ? `${found.task.id} (${found.task.title})` : taskId;
   }
 }

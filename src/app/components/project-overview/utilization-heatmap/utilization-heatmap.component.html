@@ -6,12 +6,12 @@
         Team Utilization Heatmap & Weekly Capacity
       </h3>
       <p class="text-sm font-medium text-grey-medium">
-        Work hours per task and calculated percentage of weekly capacity filled in {{ utilization?.currentWeekLabel }}
+        Work hours per task and calculated percentage of weekly capacity filled in {{ utilization().currentWeekLabel }}
       </p>
     </div>
 
     <!-- Prominent Team Average Capacity Badge -->
-    @if (utilization) {
+    @if (utilization(); as utilization) {
       <div class="flex items-center gap-1 rounded-xl bg-purple-low px-2 py-1 dark:bg-purple-low/50">
         <span class="text-sm font-semibold text-grey-medium">Team Average Capacity:</span>
         <span class="text-lg font-bold text-purple">
@@ -27,31 +27,31 @@
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Team Average Capacity</span>
       <div class="mt-0.4 text-lg font-bold text-purple">
-        {{ utilization?.teamAverageCapacityFilledPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">avg</span>
+        {{ utilization().teamAverageCapacityFilledPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">avg</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Total Team Workload</span>
       <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
-        {{ utilization?.totalTeamCurrentWeekHours || 0 }} <span class="text-sm font-normal text-grey-medium">hours logged</span>
+        {{ utilization().totalTeamCurrentWeekHours || 0 }} <span class="text-sm font-normal text-grey-medium">hours logged</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Optimal Load (70-100%)</span>
       <div class="mt-0.4 text-lg font-bold text-[#67e2ae]">
-        {{ utilization?.optimalCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
+        {{ utilization().optimalCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Over Capacity (>100%)</span>
-      <div class="mt-0.4 text-lg font-bold" [ngClass]="(utilization?.overCapacityCount || 0) > 0 ? 'text-red' : 'text-grey-medium'">
-        {{ utilization?.overCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
+      <div class="mt-0.4 text-lg font-bold" [ngClass]="(utilization().overCapacityCount || 0) > 0 ? 'text-red' : 'text-grey-medium'">
+        {{ utilization().overCapacityCount || 0 }} <span class="text-sm font-normal text-grey-medium">members</span>
       </div>
     </div>
   </div>
 
   <!-- Utilization Heatmap Table -->
-  @if (utilization && utilization.persons.length > 0) {
+  @if (utilization().persons.length > 0 && utilization(); as utilization) {
     <div class="overflow-x-auto rounded-xl border border-lines-light dark:border-lines-dark">
       <table class="w-full text-left text-sm">
         <thead class="bg-grey-light text-grey-medium dark:bg-grey-vdark">
@@ -157,13 +157,13 @@
                   (click)="togglePersonExpand(person.name)"
                   class="rounded-lg border border-lines-light px-1.2 py-0.6 text-xs font-bold text-purple hover:bg-purple-low dark:border-lines-dark"
                 >
-                  {{ expandedPersonName === person.name ? 'Hide Tasks' : person.assignedTasks.length + ' Tasks' }}
+                  {{ expandedPersonName() === person.name ? 'Hide Tasks' : person.assignedTasks.length + ' Tasks' }}
                 </button>
               </td>
             </tr>
 
             <!-- Expandable Row: Task Breakdown showing how much time each task takes -->
-            @if (expandedPersonName === person.name) {
+            @if (expandedPersonName() === person.name) {
               <tr class="bg-grey-light/30 dark:bg-grey-vdark/30">
                 <td colspan="9" class="p-2">
                   <div class="rounded-xl border border-lines-light bg-white p-2 dark:border-lines-dark dark:bg-grey-dark">
@@ -197,7 +197,7 @@
     </div>
 
     <!-- Heatmap Cell Tooltip -->
-    @if (hoveredCell) {
+    @if (hoveredCell(); as hoveredCell) {
       <div
         class="rounded-xl border border-purple/30 bg-purple-low/40 p-1.6 dark:bg-purple-low/20"
       >
@@ -221,7 +221,7 @@
       <span class="text-xs font-bold uppercase text-grey-medium">Heatmap Daily Intensity:</span>
       <div class="flex flex-wrap items-center gap-1.6 text-xs">
         <div class="flex items-center gap-0.6">
-          <span class="h-3 w-3 rounded" [ngStyle]="{ 'background-color': darkMode ? '#20212c' : '#f4f7fd', 'border': '1px solid #828fa3' }"></span>
+          <span class="h-3 w-3 rounded" [ngStyle]="{ 'background-color': darkMode() ? '#20212c' : '#f4f7fd', 'border': '1px solid #828fa3' }"></span>
           <span class="text-grey-medium">0h (Off)</span>
         </div>
         <div class="flex items-center gap-0.6">

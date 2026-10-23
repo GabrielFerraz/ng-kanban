@@ -1,13 +1,13 @@
 <div class="mt-24 bg-grey-light dark:bg-grey-vdark sm:mt-32 lg:mt-36">
   <div class="flex gap-2.4 border-b border-lines-light bg-white px-1.6 dark:border-lines-dark dark:bg-grey-dark sm:px-2.4">
-    <button type="button" (click)="selectTab('board')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab === 'board', 'border-transparent text-grey-medium hover:text-purple': activeTab !== 'board' }">Board</button>
-    <button type="button" (click)="selectTab('gantt')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab === 'gantt', 'border-transparent text-grey-medium hover:text-purple': activeTab !== 'gantt' }">Gantt</button>
+    <button type="button" (click)="selectTab('board')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab() === 'board', 'border-transparent text-grey-medium hover:text-purple': activeTab() !== 'board' }">Board</button>
+    <button type="button" (click)="selectTab('gantt')" class="border-b-2 py-1.6 text-ms font-bold leading-ms" [ngClass]="{ 'border-purple text-purple': activeTab() === 'gantt', 'border-transparent text-grey-medium hover:text-purple': activeTab() !== 'gantt' }">Gantt</button>
   </div>
-  @if (activeTab === 'board') {
+  @if (activeTab() === 'board') {
     <div class="board-container board h-screen overflow-auto whitespace-nowrap px-1.6 py-2.4 sm:px-2.4">
-      @if (activeBoard?.columns?.length) {
+      @if (activeBoard()?.columns?.length) {
         <div class="inline-block" cdkDropListGroup>
-          @for (column of activeBoard?.columns; track column.name; let i = $index) {
+          @for (column of activeBoard()?.columns; track column.name; let i = $index) {
             <div class="mr-2.4 inline-block w-[28rem] whitespace-normal">
               <div class="flex flex-col">
                 <h3
@@ -37,7 +37,7 @@
                         (click)="viewTask(task)"
                         (keyup.enter)="viewTask(task)"
                         [task]="task"
-                        [blocked]="blockedTaskIds.has(task.id)"
+                        [blocked]="blockedTaskIds().has(task.id)"
                       >
                         <div class="drag-handle" cdkDragHandle>
                           <svg width="24px" fill="#828fa3" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@
             <div class="mb-2.4 h-6"></div>
             <div
               class="flex flex-1 justify-center rounded-lg"
-              [ngClass]="{ 'card-dark': darkMode, 'card-light': !darkMode }"
+              [ngClass]="{ 'card-dark': darkMode(), 'card-light': !darkMode() }"
             >
               <button
                 (click)="addColumn()"
@@ -89,8 +89,8 @@
       }
     </div>
   }
-  @if (activeTab === 'gantt') {
-    <app-gantt-chart [tasks]="boardTasks" [darkMode]="darkMode" class="block h-[calc(100vh-13rem)] sm:h-[calc(100vh-15rem)] lg:h-[calc(100vh-16rem)]"></app-gantt-chart>
+  @if (activeTab() === 'gantt') {
+    <app-gantt-chart [tasks]="boardTasks()" class="block h-[calc(100vh-13rem)] sm:h-[calc(100vh-15rem)] lg:h-[calc(100vh-16rem)]"></app-gantt-chart>
   }
 </div>
 

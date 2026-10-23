@@ -16,10 +16,10 @@ describe('NavbarComponent', () => {
 
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;
-    component.opened = true;
-    component.activeBoard = board;
-    component.boards = [board];
-    component.darkMode = false;
+    fixture.componentRef.setInput('opened', true);
+    fixture.componentRef.setInput('activeBoard', board);
+    fixture.componentRef.setInput('boards', [board]);
+    fixture.componentRef.setInput('darkMode', false);
     fixture.detectChanges();
   });
 
@@ -51,13 +51,13 @@ describe('NavbarComponent', () => {
   });
 
   it('toggles mobile sidebar state', () => {
-    expect(component.sidebarShown).toBeFalse();
+    expect(component.sidebarShown()).toBeFalse();
 
     component.open();
-    expect(component.sidebarShown).toBeTrue();
+    expect(component.sidebarShown()).toBeTrue();
 
     component.close();
-    expect(component.sidebarShown).toBeFalse();
+    expect(component.sidebarShown()).toBeFalse();
   });
 
   it('stopPropagation stops the event', () => {

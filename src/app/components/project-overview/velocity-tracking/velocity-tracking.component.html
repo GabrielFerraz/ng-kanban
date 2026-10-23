@@ -11,7 +11,7 @@
     </div>
 
     <!-- Consistency Rating Pill -->
-    @if (velocity) {
+    @if (velocity(); as velocity) {
       <div class="flex items-center gap-1.2">
         <span class="text-sm font-medium text-grey-medium">Consistency:</span>
         <span
@@ -33,31 +33,31 @@
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Average Velocity</span>
       <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
-        {{ velocity?.averageVelocity || 0 }} <span class="text-sm font-normal text-grey-medium">tasks / wk</span>
+        {{ velocity().averageVelocity || 0 }} <span class="text-sm font-normal text-grey-medium">tasks / wk</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Consistency Score</span>
       <div class="mt-0.4 text-lg font-bold text-purple">
-        {{ velocity?.consistencyPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">(σ = ±{{ velocity?.standardDeviation || 0 }})</span>
+        {{ velocity().consistencyPercentage || 0 }}% <span class="text-sm font-normal text-grey-medium">(σ = ±{{ velocity().standardDeviation || 0 }})</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Total Completed</span>
       <div class="mt-0.4 text-lg font-bold text-[#67e2ae]">
-        {{ velocity?.totalCompleted || 0 }} <span class="text-sm font-normal text-grey-medium">tasks</span>
+        {{ velocity().totalCompleted || 0 }} <span class="text-sm font-normal text-grey-medium">tasks</span>
       </div>
     </div>
     <div class="rounded-lg bg-grey-light p-1.6 dark:bg-grey-vdark">
       <span class="text-sm font-semibold uppercase text-grey-medium">Peak / Low Week</span>
       <div class="mt-0.4 text-lg font-bold text-black dark:text-white">
-        {{ velocity?.highestWeekCount || 0 }} <span class="text-sm font-normal text-grey-medium">max / {{ velocity?.lowestWeekCount || 0 }} min</span>
+        {{ velocity().highestWeekCount || 0 }} <span class="text-sm font-normal text-grey-medium">max / {{ velocity().lowestWeekCount || 0 }} min</span>
       </div>
     </div>
   </div>
 
   <!-- Velocity Consistency Chart -->
-  @if (velocity && velocity.weeks.length > 0) {
+  @if (velocity().weeks.length > 0 && velocity(); as velocity) {
     <div class="rounded-xl border border-lines-light p-2 dark:border-lines-dark">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-1.2">
         <h4 class="text-sm font-bold uppercase tracking-wider text-grey-medium">
@@ -79,7 +79,7 @@
               [attr.y1]="20 + (1 - tick) * 160"
               x2="570"
               [attr.y2]="20 + (1 - tick) * 160"
-              [attr.stroke]="darkMode ? '#3e3f4e' : '#eaebfa'"
+              [attr.stroke]="darkMode() ? '#3e3f4e' : '#eaebfa'"
               stroke-width="1"
               stroke-dasharray="2 2"
             />
@@ -113,7 +113,7 @@
               (mouseleave)="onWeekHover(null)"
             >
               <!-- Bar Background Highlight for hovered -->
-              @if (hoveredWeek?.weekNumber === week.weekNumber) {
+              @if (hoveredWeek()?.weekNumber === week.weekNumber) {
                 <rect
                   [attr.x]="65 + i * 85 - 8"
                   y="15"
@@ -167,7 +167,7 @@
         </svg>
 
         <!-- Hover Tooltip -->
-        @if (hoveredWeek) {
+        @if (hoveredWeek(); as hoveredWeek) {
           <div
             class="pointer-events-none absolute right-4 top-2 z-10 min-w-[20rem] rounded-lg bg-black/90 p-1.6 text-white shadow-xl backdrop-blur-sm dark:bg-white/95 dark:text-black"
           >

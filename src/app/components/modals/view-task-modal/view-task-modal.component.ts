@@ -1,5 +1,5 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
@@ -17,20 +17,12 @@ import { buildTaskMap, getUnmetDependencies } from '../../../utils/dependency.ut
   styleUrl: './view-task-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ViewTaskModalComponent implements OnInit {
+export class ViewTaskModalComponent {
   private dialogRef = inject<MatDialogRef<ViewTaskModalComponent>>(MatDialogRef);
   data = inject<{ task: Task; darkMode: boolean; columns: Column[] }>(MAT_DIALOG_DATA);
 
-  activeStatus!: Column;
-  dependencyTasks: Task[] = [];
-  unmetDependencies: Task[] = [];
-
-  get typeColor(): string {
-    return TASK_TYPE_COLORS[this.data.task.type] ?? '#828fa3';
-  }
-
-  ngOnInit(): void {
-    this.activeStatus = this.data.columns
+  activeStatus = signal<Column>(
+    this.data.columns
       .map(
         (column) =>
           ({
@@ -40,20 +32,24 @@ export class ViewTaskModalComponent implements OnInit {
             ),
           }) as Column,
       )
-      .filter((column) => column.tasks.length > 0)[0];
+      .filter((column) => column.tasks.length > 0)[0],
+  );
 
-    const tasksById = buildTaskMap(
-      this.data.columns.flatMap((column) => column.tasks),
-    );
-    this.dependencyTasks = (this.data.task.dependencies ?? [])
-      .map((id) => tasksById.get(id))
-      .filter((task): task is Task => !!task);
-    this.unmetDependencies = getUnmetDependencies(
-      this.data.task,
-      tasksById,
-      this.data.columns,
-    );
-  }
+  private tasksById = computed(() =>
+    buildTaskMap(this.data.columns.flatMap((column) => column.tasks)),
+  );
+
+  typeColor = computed(() => TASK_TYPE_COLORS[this.data.task.type] ?? '#828fa3');
+
+  dependencyTasks = computed(() =>
+    (this.data.task.dependencies ?? [])
+      .map((id) => this.tasksById().get(id))
+      .filter((task): task is Task => !!task),
+  );
+
+  unmetDependencies = computed(() =>
+    getUnmetDependencies(this.data.task, this.tasksById(), this.data.columns),
+  );
 
   updateSubtask(updateSubtask: SubTask): void {
     this.data.task = {
@@ -74,9 +70,9 @@ export class ViewTaskModalComponent implements OnInit {
       status: columnName,
     };
 
-    this.activeStatus = this.data.columns.filter(
-      (column) => column.name === columnName,
-    )[0];
+    this.activeStatus.set(
+      this.data.columns.filter((column) => column.name === columnName)[0],
+    );
   }
 
   calculateCompleted(subtasks: SubTask[]): number {

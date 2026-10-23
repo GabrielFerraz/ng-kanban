@@ -14,7 +14,7 @@ describe('TaskCardComponent', () => {
 
     fixture = TestBed.createComponent(TaskCardComponent);
     component = fixture.componentInstance;
-    component.task = {
+    fixture.componentRef.setInput('task', {
       id: 'TASK-1',
       type: TaskType.Feature,
       title: 'Build UI',
@@ -27,7 +27,7 @@ describe('TaskCardComponent', () => {
         { title: 'Sub 2', isCompleted: false },
       ],
       dependencies: [],
-    };
+    });
     fixture.detectChanges();
   });
 
@@ -47,7 +47,7 @@ describe('TaskCardComponent', () => {
 
   describe('calculateCompleted', () => {
     it('counts completed subtasks', () => {
-      expect(component.calculateCompleted(component.task.subtasks)).toBe(1);
+      expect(component.calculateCompleted(component.task().subtasks)).toBe(1);
     });
 
     it('returns 0 for no subtasks', () => {

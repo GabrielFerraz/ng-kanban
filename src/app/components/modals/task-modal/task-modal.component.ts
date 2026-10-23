@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { Column } from '../../../models/column.model';
 import { DEFAULT_ASSIGNEES, TASK_TYPES, Task, TaskType } from '../../../models/task.model';
 import { SubTask } from '../../../models/subTask.model';
@@ -34,29 +34,24 @@ export class TaskModalComponent implements OnInit {
     editMode: boolean;
   }>(MAT_DIALOG_DATA);
 
-  @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
-
   form!: FormGroup;
-  opened = false;
   taskTypes = TASK_TYPES;
   availableAssignees = DEFAULT_ASSIGNEES;
-  availableDependencies: Task[] = [];
 
-  ngOnInit(): void {
-    this.buildForm();
-    this.buildAvailableDependencies();
-  }
-
-  private buildAvailableDependencies(): void {
+  availableDependencies = computed<Task[]>(() => {
     const allTasks = this.data.columns.flatMap((column) => column.tasks);
     const currentId = this.data.task?.id;
     const excluded = currentId
       ? getDescendantIds(currentId, buildTaskMap(allTasks))
       : new Set<string>();
 
-    this.availableDependencies = allTasks.filter(
+    return allTasks.filter(
       (task) => task.id !== currentId && !excluded.has(task.id),
     );
+  });
+
+  ngOnInit(): void {
+    this.buildForm();
   }
 
   buildForm() {
@@ -138,18 +133,6 @@ export class TaskModalComponent implements OnInit {
 
   removeSubtask(index: number): void {
     this.subTaskArray.removeAt(index);
-  }
-
-  openDropdown(): void {
-    this.trigger.openMenu();
-  }
-
-  open(): void {
-    this.opened = true;
-  }
-
-  close(): void {
-    this.opened = false;
   }
 
   submit() {

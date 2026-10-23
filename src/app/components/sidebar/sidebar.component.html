@@ -1,10 +1,10 @@
 <aside
-  [ngClass]="{ 'w-0': !opened, 'lg:w-[30rem]': opened, 'sm:w-[26rem]': opened }"
+  [ngClass]="{ 'w-0': !opened(), 'lg:w-[30rem]': opened(), 'sm:w-[26rem]': opened() }"
   class="full fixed z-10 hidden h-screen flex-col border-r border-lines-light bg-white py-3.2 duration-700 dark:border-lines-dark dark:bg-grey-dark sm:flex"
 >
   <figure
     class="mb-[5.4rem] sm:pl-2.4 lg:pl-3.2"
-    [ngClass]="{ hidden: !opened }"
+    [ngClass]="{ hidden: !opened() }"
   >
     <img
       src="assets/images/logo-dark.svg"
@@ -19,11 +19,11 @@
   </figure>
   <div
     class="mb-auto flex min-h-0 flex-col sm:w-96 lg:w-[27.6rem]"
-    [ngClass]="{ hidden: !opened }"
+    [ngClass]="{ hidden: !opened() }"
   >
     <!-- Project Overview Navigation Link -->
     <div class="mb-3 shrink-0">
-      @if (isOverview) {
+      @if (isOverview()) {
         <button
           class="flex h-4.8 w-full items-center rounded-r-full bg-purple text-white sm:pl-2.4 lg:pl-3.2"
         >
@@ -49,10 +49,10 @@
     <h2
       class="mb-8 text-sm font-bold uppercase leading-sm tracking-sm text-grey-medium sm:pl-2.4 lg:pl-3.2"
     >
-      All boards ({{ boards.length }})
+      All boards ({{ boards().length }})
     </h2>
-    @for (board of boards; track board.name; let i = $index) {
-        @if (!isOverview && board.name === activeBoard?.name) {
+    @for (board of boards(); track board.name; let i = $index) {
+        @if (!isOverview() && board.name === activeBoard()?.name) {
           <button
             class="flex h-4.8 items-center rounded-r-full bg-purple h-[10px] text-white sm:pl-2.4 lg:pl-3.2"
           >
@@ -97,13 +97,13 @@
     </button>
     </div>
   </div>
-  <div class="mb-3 sm:pl-5 lg:pl-2.4" [ngClass]="{ hidden: !opened }">
+  <div class="mb-3 sm:pl-5 lg:pl-2.4" [ngClass]="{ hidden: !opened() }">
     <app-theme-toggler
       (enableDarkMode)="enableDarkMode.emit($event)"
     ></app-theme-toggler>
   </div>
   <button
-    [ngClass]="{ hidden: !opened }"
+    [ngClass]="{ hidden: !opened() }"
     (click)="collapseSidebar()"
     class="marker flex h-4.8 items-center rounded-r-full text-grey-medium hover:bg-purple-low hover:text-purple dark:hover:bg-white sm:w-96 sm:pl-2.4 lg:w-[27.6rem] lg:pl-3.2"
   >

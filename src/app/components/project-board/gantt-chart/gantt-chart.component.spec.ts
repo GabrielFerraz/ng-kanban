@@ -40,7 +40,7 @@ describe('GanttChartComponent', () => {
     fixture.componentRef.setInput('tasks', []);
     fixture.detectChanges();
 
-    expect(component.rows.length).toBe(0);
+    expect(component.rows().length).toBe(0);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('no tasks to display');
   });
@@ -51,8 +51,8 @@ describe('GanttChartComponent', () => {
     ]);
     fixture.detectChanges();
 
-    expect(component.rows.length).toBe(1);
-    expect(component.rows[0].duration).toBe(3);
+    expect(component.rows().length).toBe(1);
+    expect(component.rows()[0].duration).toBe(3);
   });
 
   it('treats an end date before start date as same-day', () => {
@@ -61,7 +61,7 @@ describe('GanttChartComponent', () => {
     ]);
     fixture.detectChanges();
 
-    expect(component.rows[0].duration).toBe(1);
+    expect(component.rows()[0].duration).toBe(1);
   });
 
   it('sortBy toggles direction when the same key is clicked twice', () => {
@@ -72,18 +72,18 @@ describe('GanttChartComponent', () => {
     fixture.detectChanges();
 
     component.sortBy('title');
-    expect(component.rows[0].task.title).toBe('A');
+    expect(component.rows()[0].task.title).toBe('A');
 
     component.sortBy('title');
-    expect(component.rows[0].task.title).toBe('B');
+    expect(component.rows()[0].task.title).toBe('B');
   });
 
   it('sortIcon reflects the active sort key and direction', () => {
     fixture.componentRef.setInput('tasks', [makeTask({})]);
     fixture.detectChanges();
 
-    component.sortKey = 'title';
-    component.sortDirection = 'asc';
+    component.sortKey.set('title');
+    component.sortDirection.set('asc');
     expect(component.sortIcon('title')).toBe('▲');
     expect(component.sortIcon('status')).toBe('');
   });

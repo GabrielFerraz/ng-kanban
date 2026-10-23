@@ -54,14 +54,14 @@ describe('ProjectBoardComponent', () => {
   });
 
   it('flattens board tasks on input change', () => {
-    expect(component.boardTasks.length).toBe(1);
-    expect(component.boardTasks[0].id).toBe('TASK-1');
+    expect(component.boardTasks().length).toBe(1);
+    expect(component.boardTasks()[0].id).toBe('TASK-1');
   });
 
   it('switches between board and gantt tabs', () => {
-    expect(component.activeTab).toBe('board');
+    expect(component.activeTab()).toBe('board');
     component.selectTab('gantt');
-    expect(component.activeTab).toBe('gantt');
+    expect(component.activeTab()).toBe('gantt');
   });
 
   it('emits columnAdd when addColumn is called', () => {
@@ -77,7 +77,7 @@ describe('ProjectBoardComponent', () => {
     const dialogRefSpy = jasmine.createSpyObj<MatDialogRef<unknown>>('MatDialogRef', ['afterClosed'], {
       componentInstance: {
         data: { task: board.columns[0].tasks[0] },
-        activeStatus: { name: 'Todo' },
+        activeStatus: () => ({ name: 'Todo' }),
       },
     });
     dialogRefSpy.afterClosed.and.returnValue(of(undefined));

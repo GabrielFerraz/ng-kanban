@@ -29,7 +29,7 @@ describe('ProjectOverviewComponent', () => {
 
     fixture = TestBed.createComponent(ProjectOverviewComponent);
     component = fixture.componentInstance;
-    component.boards = mockBoards;
+    fixture.componentRef.setInput('boards', mockBoards);
     fixture.detectChanges();
   });
 
@@ -38,8 +38,8 @@ describe('ProjectOverviewComponent', () => {
   });
 
   it('initializes with 4 draggable widgets', () => {
-    expect(component.widgets.length).toBe(4);
-    const ids = component.widgets.map((w) => w.id);
+    expect(component.widgets().length).toBe(4);
+    const ids = component.widgets().map((w) => w.id);
     expect(ids).toContain('burndown-burnup');
     expect(ids).toContain('velocity-tracking');
     expect(ids).toContain('utilization-heatmap');
@@ -47,15 +47,16 @@ describe('ProjectOverviewComponent', () => {
   });
 
   it('allows collapsing and expanding widgets', () => {
-    const widget = component.widgets[0];
+    const widget = component.widgets()[0];
     expect(widget.collapsed).toBeFalse();
     component.toggleCollapse(widget);
-    expect(widget.collapsed).toBeTrue();
+    expect(component.widgets()[0].collapsed).toBeTrue();
   });
 
   it('resets layout to default', () => {
-    component.widgets[0].collapsed = true;
+    component.toggleCollapse(component.widgets()[0]);
+    expect(component.widgets()[0].collapsed).toBeTrue();
     component.resetLayout();
-    expect(component.widgets[0].collapsed).toBeFalse();
+    expect(component.widgets()[0].collapsed).toBeFalse();
   });
 });
